@@ -1,0 +1,19 @@
+Full Project Overhaul
+
+Changed the Procedural Mesh Component for the Runtime Mesh Component. Immediate increase of performance about 10-30 times.
+
+Project is again contained in a Plugin. Interface has not yet been modified.
+
+Solved memory leak issues. 
+Added destructors to non-UObject inheriting objects. (UObject children are attached to the native engine garbage collection)
+Changed raw to smart pointers which was causing memory leaks.
+
+Changed from new struct to default FRuntimeRenderableMeshData to avoid copy constructors. 
+Notable performance increase.
+
+Testing 2 types of sphere generation for performance and texturing.
+
+Could previous currently support a resolution of up to 256. 
+Any higher creates an index overflow.
+Index Overflow fixed
+

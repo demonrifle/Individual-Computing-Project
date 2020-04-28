@@ -1,0 +1,33 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "ProceduralPlanetGenerator",
+	"Description": "A combination of plugins to enable realtime rapid generation and edit of small to medium-sized planets",
+	"Category": "Other",
+	"CreatedBy": "w17012919",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "ProceduralPlanetGenerator",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	],	
+	"Plugins": [                       
+      {                                
+        "Name": "RuntimeMeshComponent",
+        "Enabled": true                
+      },
+	  { "Name" : "SimplexNoise",
+		"Enabled" : true 
+	  }
+	]
+}

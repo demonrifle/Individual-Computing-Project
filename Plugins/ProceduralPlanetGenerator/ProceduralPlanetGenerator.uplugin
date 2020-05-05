@@ -19,15 +19,22 @@
 			"Name": "ProceduralPlanetGenerator",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "NoiseGenerator",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
 		}
 	],	
-	"Plugins": [                       
-      {                                
-        "Name": "RuntimeMeshComponent",
-        "Enabled": true                
-      },
-	  { "Name" : "SimplexNoise",
-		"Enabled" : true 
-	  }
+	"Plugins": [
+		{
+			"Name": "RuntimeMeshComponent",
+			"Enabled": true
+		},
+
+		{
+			"Name": "SimplexNoise",
+			"Enabled": true
+		}
 	]
 }

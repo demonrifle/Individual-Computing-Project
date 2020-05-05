@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class ProceduralPlanetGenerator : ModuleRules
+public class NoiseGenerator : ModuleRules
 {
-	public ProceduralPlanetGenerator(ReadOnlyTargetRules Target) : base(Target)
+	public NoiseGenerator(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -26,8 +26,7 @@ public class ProceduralPlanetGenerator : ModuleRules
 			new string[]
 			{
 				"Core",
-                "RuntimeMeshComponent",
-                "NoiseGenerator"
+                "UnrealEd"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -44,6 +43,9 @@ public class ProceduralPlanetGenerator : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+                "DetailCustomizations",
+                "PropertyEditor",
+                "EditorStyle",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

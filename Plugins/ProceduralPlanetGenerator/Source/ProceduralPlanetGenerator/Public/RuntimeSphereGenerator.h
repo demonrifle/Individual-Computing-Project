@@ -5,9 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "RuntimeMeshActor.h"
-#include "Providers/RuntimeMeshProviderSphere.h"
 #include "Providers/RuntimeMeshProviderStatic.h"
-#include "ProceduralPlanetData.h"
+#include "Providers/RuntimeMeshProviderSphere.h"
+#include "ProceduralPlanetMeshProvider.h"
+#include "NoiseLayer.h"
+
 #include "RuntimeSphereGenerator.generated.h"
 
 /**
@@ -24,14 +26,14 @@ public:
 	//ARuntimeSphereGenerator(float Radius, float Resolution);
 
 	UPROPERTY(Category = "GeneralPlanetSettings", EditAnywhere)
-		float Radius = 200.0f;
+		float Radius;
 	UPROPERTY(Category = "GeneralPlanetSettings", EditAnywhere)
-		uint32 Resolution = 10;
+		int32 Resolution;
 
-	URuntimeMeshProviderStatic* StaticProvider;
-	TUniquePtr<ProceduralPlanetData> SphereData;
-	//ProceduralPlanetData* SphereData;
-	
+	UProceduralPlanetMeshProvider* PlanetProvider;
+
+	UPROPERTY(EditAnywhere, Instanced)
+	UNoiseLayer* Noise;
 
 protected:
 	// Called when the game starts or when spawned

@@ -1,121 +1,122 @@
-// Copyright 2016-2020 Chris Conway (Koderz). All Rights Reserved.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Providers/RuntimeMeshProviderSphere.h"
+#include "ProceduralPlanetMeshProvider.h"
 #include "RuntimeMeshComponentPlugin.h"
 
-
-URuntimeMeshProviderSphere::URuntimeMeshProviderSphere()
+UProceduralPlanetMeshProvider::UProceduralPlanetMeshProvider()
 	: MaxLOD(0)
-	, SphereRadius(100.0f)
-	, MaxLatitudeSegments(32)
-	, MinLatitudeSegments(8)
-	, MaxLongitudeSegments(16)
-	, MinLongitudeSegments(5)
-	, LODMultiplier(0.75)
-	, SphereMaterial(nullptr)
+		, SphereRadius(100.0f)
+		, MaxLatitudeSegments(32)
+		, MinLatitudeSegments(8)
+		, MaxLongitudeSegments(16)
+		, MinLongitudeSegments(5)
+		, LODMultiplier(0.75)
+		, SphereMaterial(nullptr)
 {
 	MaxLOD = GetMaxNumberOfLODs() - 1;
 }
 
-float URuntimeMeshProviderSphere::GetSphereRadius() const
+float UProceduralPlanetMeshProvider::GetSphereRadius() const
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	return SphereRadius;
 }
 
-void URuntimeMeshProviderSphere::SetSphereRadius(float InSphereRadius)
+void UProceduralPlanetMeshProvider::SetSphereRadius(float InSphereRadius)
 {
 	FScopeLock Lock(&PropertySyncRoot);
-	SphereRadius = InSphereRadius; 
+	SphereRadius = InSphereRadius;
 	UpdateMeshParameters(true);
 }
 
-int32 URuntimeMeshProviderSphere::GetMaxLatitudeSegments() const
+int32 UProceduralPlanetMeshProvider::GetMaxLatitudeSegments() const
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	return MaxLatitudeSegments;
 }
 
-void URuntimeMeshProviderSphere::SetMaxLatitudeSegments(int32 InMaxLatitudeSegments)
+void UProceduralPlanetMeshProvider::SetMaxLatitudeSegments(int32 InMaxLatitudeSegments)
 {
 	FScopeLock Lock(&PropertySyncRoot);
-	MaxLatitudeSegments = InMaxLatitudeSegments; 
+	MaxLatitudeSegments = InMaxLatitudeSegments;
 	UpdateMeshParameters(false);
 }
 
-int32 URuntimeMeshProviderSphere::GetMinLatitudeSegments() const
+int32 UProceduralPlanetMeshProvider::GetMinLatitudeSegments() const
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	return MinLatitudeSegments;
 }
 
-void URuntimeMeshProviderSphere::SetMinLatitudeSegments(int32 InMinLatitudeSegments)
+void UProceduralPlanetMeshProvider::SetMinLatitudeSegments(int32 InMinLatitudeSegments)
 {
 	FScopeLock Lock(&PropertySyncRoot);
-	MinLatitudeSegments = InMinLatitudeSegments; 
+	MinLatitudeSegments = InMinLatitudeSegments;
 	UpdateMeshParameters(false);
 }
 
-int32 URuntimeMeshProviderSphere::GetMaxLongitudeSegments() const
+int32 UProceduralPlanetMeshProvider::GetMaxLongitudeSegments() const
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	return MaxLongitudeSegments;
 }
 
-void URuntimeMeshProviderSphere::SetMaxLongitudeSegments(int32 InMaxLongitudeSegments)
+void UProceduralPlanetMeshProvider::SetMaxLongitudeSegments(int32 InMaxLongitudeSegments)
 {
 	FScopeLock Lock(&PropertySyncRoot);
-	MaxLongitudeSegments = InMaxLongitudeSegments; 
+	MaxLongitudeSegments = InMaxLongitudeSegments;
 	UpdateMeshParameters(false);
 }
 
-int32 URuntimeMeshProviderSphere::GetMinLongitudeSegments() const
+int32 UProceduralPlanetMeshProvider::GetMinLongitudeSegments() const
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	return MinLongitudeSegments;
 }
 
-void URuntimeMeshProviderSphere::SetMinLongitudeSegments(int32 InMinLongitudeSegments)
+void UProceduralPlanetMeshProvider::SetMinLongitudeSegments(int32 InMinLongitudeSegments)
 {
 	FScopeLock Lock(&PropertySyncRoot);
-	MinLongitudeSegments = InMinLongitudeSegments; 
+	MinLongitudeSegments = InMinLongitudeSegments;
 	UpdateMeshParameters(false);
 }
 
-float URuntimeMeshProviderSphere::GetLODMultiplier() const
+float UProceduralPlanetMeshProvider::GetLODMultiplier() const
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	return LODMultiplier;
 }
 
-void URuntimeMeshProviderSphere::SetLODMultiplier(float InLODMultiplier)
+void UProceduralPlanetMeshProvider::SetLODMultiplier(float InLODMultiplier)
 {
 	FScopeLock Lock(&PropertySyncRoot);
+
+	//If the LODMultiplier is greater than one, there'd be infinite LODs as it would diverge. (It's a geometric series)
 	if (InLODMultiplier >= 1)
 	{
-		//If the LODMultiplier is greater than one, there'd be infinite LODs as it would diverge. (It's a geometric series)
-		UE_LOG(RuntimeMeshLog, Error, TEXT("RMC Sphere Provider(%d): LODMultiplier was set greater than or equal to 1 ! Aborting ! Value : %f"), FPlatformTLS::GetCurrentThreadId(), InLODMultiplier);
+		UE_LOG(LogTemp, Error, TEXT("RMC Sphere Provider(%d): LODMultiplier was set greater than or equal to 1 ! Aborting ! Value : %f"), FPlatformTLS::GetCurrentThreadId(), InLODMultiplier);
 		return;
 	}
-	LODMultiplier = InLODMultiplier; 
+	LODMultiplier = InLODMultiplier;
 	UpdateMeshParameters(false);
 }
 
-UMaterialInterface* URuntimeMeshProviderSphere::GetSphereMaterial() const
+UMaterialInterface* UProceduralPlanetMeshProvider::GetSphereMaterial() const
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	return SphereMaterial;
 }
 
-void URuntimeMeshProviderSphere::SetSphereMaterial(UMaterialInterface* InSphereMaterial)
+void UProceduralPlanetMeshProvider::SetSphereMaterial(UMaterialInterface* InSphereMaterial)
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	SphereMaterial = InSphereMaterial;
+	//Re-setup the material again
 	this->SetupMaterialSlot(0, FName("Sphere Base"), SphereMaterial);
 }
 
-void URuntimeMeshProviderSphere::Initialize_Implementation()
+void UProceduralPlanetMeshProvider::Initialize_Implementation()
 {
 	SetupMaterialSlot(0, FName("Sphere Base"), SphereMaterial);
 
@@ -132,39 +133,48 @@ void URuntimeMeshProviderSphere::Initialize_Implementation()
 	// Setup sections
 	for (int32 LODIndex = 0; LODIndex <= MaxLOD; LODIndex++)
 	{
+		// Declare properties
 		FRuntimeMeshSectionProperties Properties;
 		Properties.bCastsShadow = true;
 		Properties.bIsVisible = true;
 		Properties.MaterialSlot = 0;
 		Properties.UpdateFrequency = ERuntimeMeshUpdateFrequency::Infrequent;
+
+		// Calculate precision and segments for LOD
 		int32 LatSegments, LonSegments;
 		GetSegmentsForLOD(LODIndex, LatSegments, LonSegments);
 		Properties.bWants32BitIndices = (LatSegments + 1)*(LonSegments + 1) >= 1 << 16; //1<<16 is the 16 bit integer limit (2^16), so if we have more verts than that then we switch
+
+		// Setup section
 		CreateSection(LODIndex, 0, Properties);
 	}
 }
 
-bool URuntimeMeshProviderSphere::GetSectionMeshForLOD_Implementation(int32 LODIndex, int32 SectionId, FRuntimeMeshRenderableMeshData& MeshData)
+bool UProceduralPlanetMeshProvider::GetSectionMeshForLOD_Implementation(int32 LODIndex, int32 SectionId, FRuntimeMeshRenderableMeshData& MeshData)
 {
-	UE_LOG(RuntimeMeshLog, Verbose, TEXT("RMC Sphere Provider(%d): Getting LOD:%d Section:%d"), FPlatformTLS::GetCurrentThreadId(), LODIndex, SectionId);
+	UE_LOG(LogTemp, Verbose, TEXT("RMC Sphere Provider(%d): Getting LOD:%d Section:%d"), FPlatformTLS::GetCurrentThreadId(), LODIndex, SectionId);
 
 	// We should only ever be queried for section 0
 	check(SectionId == 0 && LODIndex <= MaxLOD);
 
+	// Temporary variables declaration
 	float TempRadius;
 	int32 TempMinLat, TempMaxLat;
 	int32 TempMinLong, TempMaxLong;
 	float TempLODMultiplier;
 
+	// Set temp variables
 	GetShapeParams(TempRadius, TempMinLat, TempMaxLat, TempMinLong, TempMaxLong, TempLODMultiplier);
 
+	// Set segements for LOD
 	int32 LatSegments, LonSegments;
 	GetSegmentsForLOD(LODIndex, TempLODMultiplier, TempMaxLat, TempMinLat, TempMaxLong, TempMinLong, LatSegments, LonSegments);
 
+	// Build up Section Mesh 
 	return GetSphereMesh(TempRadius, LatSegments, LonSegments, MeshData);
 }
 
-FRuntimeMeshCollisionSettings URuntimeMeshProviderSphere::GetCollisionSettings_Implementation()
+FRuntimeMeshCollisionSettings UProceduralPlanetMeshProvider::GetCollisionSettings_Implementation()
 {
 	FRuntimeMeshCollisionSettings Settings;
 	Settings.bUseAsyncCooking = false;
@@ -175,19 +185,19 @@ FRuntimeMeshCollisionSettings URuntimeMeshProviderSphere::GetCollisionSettings_I
 	return Settings;
 }
 
-FBoxSphereBounds URuntimeMeshProviderSphere::GetBounds_Implementation()
+// Get render bounds for planet
+FBoxSphereBounds UProceduralPlanetMeshProvider::GetBounds_Implementation()
 {
 	return FBoxSphereBounds(FSphere(FVector::ZeroVector, SphereRadius));
 }
 
-bool URuntimeMeshProviderSphere::IsThreadSafe_Implementation()
+bool UProceduralPlanetMeshProvider::IsThreadSafe_Implementation()
 {
 	return true;
 }
 
-
-
-void URuntimeMeshProviderSphere::GetShapeParams(float& OutRadius, int32& OutMinLatitudeSegments, int32& OutMaxLatitudeSegments, int32& OutMinLongitudeSegments, int32& OutMaxLongitudeSegments, float& OutLODMultiplier)
+//Threadsafe getter
+void UProceduralPlanetMeshProvider::GetShapeParams(float& OutRadius, int32& OutMinLatitudeSegments, int32& OutMaxLatitudeSegments, int32& OutMinLongitudeSegments, int32& OutMaxLongitudeSegments, float& OutLODMultiplier)
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	OutRadius = SphereRadius;
@@ -198,32 +208,42 @@ void URuntimeMeshProviderSphere::GetShapeParams(float& OutRadius, int32& OutMinL
 	OutLODMultiplier = LODMultiplier;
 }
 
-int32 URuntimeMeshProviderSphere::GetMaxNumberOfLODs()
+
+/*
+ Get the maximum number of available LODs given the maximum and minimum segments.
+
+*/
+int32 UProceduralPlanetMeshProvider::GetMaxNumberOfLODs()
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	int32 MaxLODs = 1;
 	float CurrentLatitudeSegments = MaxLatitudeSegments;
 	float CurrentLongitudeSegments = MaxLongitudeSegments;
 
+	// Up to MaxLODs - 8
 	while (MaxLODs < RUNTIMEMESH_MAXLODS)
 	{
+		// Multiply current segments by the LODMultiplier to get segments at next stage
 		CurrentLatitudeSegments *= LODMultiplier;
 		CurrentLongitudeSegments *= LODMultiplier;
 
 		// Have we gone far enough?
+		// If lower than the minimum segments possible - stop
 		if (CurrentLatitudeSegments <= MinLatitudeSegments && CurrentLongitudeSegments <= MinLongitudeSegments)
 		{
 			MaxLODs++;
 			break;
 		}
 
+		//Else increase MaxLODs and start again
 		MaxLODs++;
 	}
 
 	return MaxLODs;
 }
 
-float URuntimeMeshProviderSphere::CalculateScreenSize(int32 LODIndex)
+//Calculate screen size that object should be before it's rendered
+float UProceduralPlanetMeshProvider::CalculateScreenSize(int32 LODIndex)
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	float ScreenSize = FMath::Pow(LODMultiplier, LODIndex);
@@ -231,14 +251,17 @@ float URuntimeMeshProviderSphere::CalculateScreenSize(int32 LODIndex)
 	return ScreenSize;
 }
 
-bool URuntimeMeshProviderSphere::GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData)
+// Calculate actual Mesh data.
+bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData)
 {
 	TArray<FVector> LatitudeVerts;
 	TArray<FVector> TangentVerts;
 	int32 TrisOrder[6] = { 0, 1, LatitudeSegments + 1, 1, LatitudeSegments + 2, LatitudeSegments + 1 };
 	//Baked trigonometric data to avoid computing it too much (sin and cos are expensive !)
+	//Set array size
 	LatitudeVerts.SetNumUninitialized(LatitudeSegments + 1);
 	TangentVerts.SetNumUninitialized(LatitudeSegments + 1);
+	//For each latitude segment + 1 due to poles
 	for (int32 LatitudeIndex = 0; LatitudeIndex < LatitudeSegments + 1; LatitudeIndex++)
 	{
 		float angle = LatitudeIndex * 2.f * PI / LatitudeSegments;
@@ -258,6 +281,7 @@ bool URuntimeMeshProviderSphere::GetSphereMesh(int32 SphereRadius, int32 Latitud
 		{
 			FVector Normal = LatitudeVerts[LatitudeIndex] * r + FVector(0, 0, z);
 			FVector Position = Normal * SphereRadius;
+			//THIS IS WHERE YOU ADD THE NOISE
 			MeshData.Positions.Add(Position);
 			MeshData.Tangents.Add(Normal, TangentVerts[LatitudeIndex]);
 			MeshData.TexCoords.Add(FVector2D((float)LatitudeIndex / LatitudeSegments, (float)LongitudeIndex / LongitudeSegments));
@@ -279,7 +303,8 @@ bool URuntimeMeshProviderSphere::GetSphereMesh(int32 SphereRadius, int32 Latitud
 	return true;
 }
 
-void URuntimeMeshProviderSphere::UpdateMeshParameters(bool bAffectsCollision)
+// Update function
+void UProceduralPlanetMeshProvider::UpdateMeshParameters(bool bAffectsCollision)
 {
 	MaxLOD = GetMaxNumberOfLODs() - 1;
 

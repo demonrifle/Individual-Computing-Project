@@ -2,26 +2,15 @@
 
 
 #include "NoiseLayer.h"
-#include "DVector.h"
 
+// Abstract Base Class
 UNoiseLayer::UNoiseLayer()
 {
-	//General
 	Seed = 1337;
 	Frequency = 0.02f;
-	Amplitude = 1.f;
-
-	////Fractal
-	//Interpolation = UNoiseInterp::Quintic;
-	//Lacunarity = 2.0f;
-	//Gain = 0.5f;
-	//Octaves = 3;
-
-	////Cellular
-	//CellularType = UNoiseCellularType::Euclidean;
-	//CellularReturnType = UNoiseCellularReturnType::CellValue;
-	//Jitter = 0.45f;
-	//CellularLookupNoise = nullptr;
+	AmplitudeMultiplier = 0.2f;
+	ElevationReduction = 0.f;
+	CentreOffset = FVector(0.f, 0.f, 0.f);
 }
 
 double UNoiseLayer::GetHeightAt3DPoint(float X, float Y, float Z)
@@ -29,13 +18,21 @@ double UNoiseLayer::GetHeightAt3DPoint(float X, float Y, float Z)
 	// Check initialized
 	if (this == nullptr) return 1;
 
+	// Lock CentreOffset to a step equal to the current frequency multiplied by N
+	CentreOffset.X = CentreOffset.X - fmod(CentreOffset.X, Frequency);
+	CentreOffset.Y = CentreOffset.Y - fmod(CentreOffset.Y, Frequency);
+	CentreOffset.Z = CentreOffset.Z - fmod(CentreOffset.Z, Frequency);
+
+	// Get Noise for offset point
+	float NoiseValue = Noise.GetNoise(X + CentreOffset.X, Y + CentreOffset.Y, Z + CentreOffset.Z);
+
 	// The returned value is normally between -1 and 1. Add 1 to make it 0-2.
 	// Divide by 2 to make it 0-1.
-	// Multiply it by Amplitude to get final result.
-	double Value = (1 + Noise.GetNoise(X, Y, Z)) / 2 * Amplitude;
+	// Multiply it by AmplitudeMultiplier to get final result and reduce that by the elevation reduction 
+	double Value = ((1 + NoiseValue) / 2 * AmplitudeMultiplier) - ElevationReduction;
 
-	//Divide by 2 to make it 0-1. Multiply by range, then add minimumValue, to make it between min-max. I think.
-	//double ret = (value / 2) * (max - min) + min;
+	// Return the calculated value ot 0 of lower than that after elevation reduction
+	Value = fmax(0.f, Value);
 
 	return Value;
 }
@@ -45,13 +42,21 @@ double UNoiseLayer::GetHeightAt3DPoint(FVector Vertex)
 	// Check initialized
 	if (this == nullptr) return 1;
 
+	// Lock CentreOffset to a step equal to the current frequency multiplied by N
+	CentreOffset.X = CentreOffset.X - fmod(CentreOffset.X, Frequency);
+	CentreOffset.Y = CentreOffset.Y - fmod(CentreOffset.Y, Frequency);
+	CentreOffset.Z = CentreOffset.Z - fmod(CentreOffset.Z, Frequency);
+
+	// Get Noise for offset point
+	float NoiseValue = Noise.GetNoise(Vertex.X + CentreOffset.X, Vertex.Y + CentreOffset.Y, Vertex.Z + CentreOffset.Z);
+
 	// The returned value is normally between -1 and 1. Add 1 to make it 0-2.
 	// Divide by 2 to make it 0-1.
-	// Multiply it by Amplitude to get final result.
-	double Value = (1 + Noise.GetNoise(Vertex.X, Vertex.Y, Vertex.Z)) / 2 * Amplitude;
+	// Multiply it by AmplitudeMultiplier to get final result and reduce that by the elevation reduction 
+	double Value = ((1 + NoiseValue) / 2 * AmplitudeMultiplier) - ElevationReduction;
 
-	//Divide by 2 to make it 0-1. Multiply by range, then add minimumValue, to make it between min-max. I think.
-	//double ret = (value / 2) * (max - min) + min;
+	// Return the calculated value ot 0 of lower than that after elevation reduction
+	Value = fmax(0.f, Value);
 
 	return Value;
 }
@@ -62,6 +67,7 @@ void UNoiseLayer::UpdateValues()
 	Noise.SetFrequency(Frequency);
 }
 
+// Abstract Fractal Base Class
 UFractalNoise::UFractalNoise()
 {
 	Lacunarity = 2.0f;
@@ -96,10 +102,10 @@ void UFractalNoise::UpdateValues()
 	Noise.SetFractalLacunarity(Lacunarity);
 	Noise.SetFractalGain(Gain);
 	Noise.SetFractalOctaves(Octaves);
-	UNoiseLayer::UpdateValues();
-	
+	Super::UpdateValues();
 }
 
+// Value Noise
 UValueNoise::UValueNoise()
 {
 	Noise.SetNoiseType(FastNoise::NoiseType::Value);
@@ -127,10 +133,11 @@ void UValueNoise::UpdateValues()
 		break;
 	}
 	}
-	UNoiseLayer::UpdateValues();
+	Super::UpdateValues();
 	
 }
 
+// Value Fractal Noise
 UValueFractalNoise::UValueFractalNoise() 
 {
 	Noise.SetNoiseType(FastNoise::ValueFractal);
@@ -139,9 +146,10 @@ UValueFractalNoise::UValueFractalNoise()
 }
 
 void UValueFractalNoise::UpdateValues() {
-	UFractalNoise::UpdateValues();
+	Super::UpdateValues();
 }
 
+// Perlin Noise
 UPerlinNoise::UPerlinNoise()
 {
 	Noise.SetNoiseType(FastNoise::Perlin);
@@ -169,10 +177,11 @@ void UPerlinNoise::UpdateValues()
 		break;
 	}
 	}
-	UNoiseLayer::UpdateValues();
+	Super::UpdateValues();
 
 }
 
+// Perln Fractal Noise
 UPerlinFractalNoise::UPerlinFractalNoise()
 {
 	Noise.SetNoiseType(FastNoise::PerlinFractal);
@@ -182,9 +191,10 @@ UPerlinFractalNoise::UPerlinFractalNoise()
 
 void UPerlinFractalNoise::UpdateValues()
 {
-	UFractalNoise::UpdateValues();
+	Super::UpdateValues();
 }
 
+// Simplex Noise
 USimplexNoise::USimplexNoise() 
 {
 	Noise.SetNoiseType(FastNoise::Simplex);
@@ -192,9 +202,10 @@ USimplexNoise::USimplexNoise()
 }
 
 void USimplexNoise::UpdateValues() {
-	UNoiseLayer::UpdateValues();
+	Super::UpdateValues();
 }
 
+// Simplex Fractal Noise
 USimplexFractalNoise::USimplexFractalNoise()
 {
 	Noise.SetNoiseType(FastNoise::SimplexFractal);
@@ -203,9 +214,10 @@ USimplexFractalNoise::USimplexFractalNoise()
 
 void USimplexFractalNoise::UpdateValues()
 {
-	UFractalNoise::UpdateValues();
+	Super::UpdateValues();
 }
 
+// Cellular Noise
 UCellularNoise::UCellularNoise()
 {
 	Noise.SetNoiseType(FastNoise::Cellular);
@@ -273,48 +285,6 @@ void UCellularNoise::UpdateValues()
 		break;
 	}
 	}
-}
 
-UCraterNoise::UCraterNoise() {
-	Noise.SetNoiseType(FastNoise::Cellular);
-	UpdateValues();
-}
-
-void UCraterNoise::UpdateValues() {
-
-	UCellularNoise::UpdateValues();
-}
-
-double UCraterNoise::GetHeightAt3DPoint(float X, float Y, float Z)
-{
-	// Check initialized
-	if (this == nullptr) return 1;
-
-	// The returned value is normally between -1 and 1. Add 1 to make it 0-2.
-	// Divide by 2 to make it 0-1.
-	// Multiply it by Amplitude to get final result.
-	double Value = (1 + Noise.GetNoise(X, Y, Z)) / 2 * Amplitude;
-
-	//Divide by 2 to make it 0-1. Multiply by range, then add minimumValue, to make it between min-max. I think.
-	//double ret = (value / 2) * (max - min) + min;
-
-	return Value;
-}
-
-double UCraterNoise::GetHeightAt3DPoint(FVector Vertex)
-{
-	// Check initialized
-	if (this == nullptr) return 1;
-
-	// The returned value is normally between -1 and 1. Add 1 to make it 0-2.
-	// Divide by 2 to make it 0-1.
-	// Multiply it by Amplitude to get final result.
-	double Value = (1 + Noise.GetNoise(Vertex.X, Vertex.Y, Vertex.Z)) / 2 * Amplitude;
-	double Offset = fmin(Value, 0.06) / 5 - 0.012;
-	//Divide by 2 to make it 0-1. Multiply by range, then add minimumValue, to make it between min-max. I think.
-	//double ret = (value / 2) * (max - min) + min;
-	
-	Value = Offset * Amplitude;
-
-	return Value;
+	Super::UpdateValues();
 }

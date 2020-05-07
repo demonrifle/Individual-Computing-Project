@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "RuntimeMeshActor.h"
-#include "Providers/RuntimeMeshProviderStatic.h"
 #include "Providers/RuntimeMeshProviderSphere.h"
 #include "ProceduralPlanetMeshProvider.h"
 #include "NoiseLayer.h"

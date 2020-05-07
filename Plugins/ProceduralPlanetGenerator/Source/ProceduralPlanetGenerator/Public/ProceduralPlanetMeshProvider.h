@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "RuntimeMeshProvider.h"
-#include "ProceduralPlanetMeshProvider.generated.h"
+#include "NoiseLayer.h"
 
+#include "ProceduralPlanetMeshProvider.generated.h"
 
 
 UCLASS()
@@ -29,6 +30,8 @@ private:
 		float LODMultiplier;
 
 		UMaterialInterface* SphereMaterial;
+
+		UNoiseLayer* Noise;
 
 public:
 
@@ -55,6 +58,9 @@ public:
 		UMaterialInterface* GetSphereMaterial() const;
 		void SetSphereMaterial(UMaterialInterface* InSphereMaterial);
 
+		UNoiseLayer* GetNoise() const;
+		void SetNoise(UNoiseLayer* InNoiseLayer);
+
 protected:
 	virtual void Initialize_Implementation() override;
 	virtual bool GetSectionMeshForLOD_Implementation(int32 LODIndex, int32 SectionId, FRuntimeMeshRenderableMeshData& MeshData) override;
@@ -75,7 +81,7 @@ private:
 		LatitudeSegments = FMath::Max(FMath::RoundToInt(MaxLat * FMath::Pow(LODMul, LODIndex)), MinLat);
 		LongitudeSegments = FMath::Max(FMath::RoundToInt(MaxLon * FMath::Pow(LODMul, LODIndex)), MinLon);
 	}
-	static bool GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData);
+	static bool GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, UNoiseLayer* InNoise);
 	void UpdateMeshParameters(bool bAffectsCollision);
 
 };

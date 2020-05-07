@@ -13,6 +13,7 @@ UProceduralPlanetMeshProvider::UProceduralPlanetMeshProvider()
 		, MinLongitudeSegments(5)
 		, LODMultiplier(0.75)
 		, SphereMaterial(nullptr)
+		, Noise(nullptr)
 {
 	MaxLOD = GetMaxNumberOfLODs() - 1;
 }
@@ -116,6 +117,20 @@ void UProceduralPlanetMeshProvider::SetSphereMaterial(UMaterialInterface* InSphe
 	this->SetupMaterialSlot(0, FName("Sphere Base"), SphereMaterial);
 }
 
+UNoiseLayer* UProceduralPlanetMeshProvider::GetNoise() const
+{
+	FScopeLock Lock(&PropertySyncRoot);
+	return Noise;
+}
+
+void UProceduralPlanetMeshProvider::SetNoise(UNoiseLayer* InNoiseLayer)
+{
+	FScopeLock Lock(&PropertySyncRoot);
+
+	Noise = InNoiseLayer;
+	UpdateMeshParameters(true);
+}
+
 void UProceduralPlanetMeshProvider::Initialize_Implementation()
 {
 	SetupMaterialSlot(0, FName("Sphere Base"), SphereMaterial);
@@ -138,12 +153,8 @@ void UProceduralPlanetMeshProvider::Initialize_Implementation()
 		Properties.bCastsShadow = true;
 		Properties.bIsVisible = true;
 		Properties.MaterialSlot = 0;
+		Properties.bWants32BitIndices = true;
 		Properties.UpdateFrequency = ERuntimeMeshUpdateFrequency::Infrequent;
-
-		// Calculate precision and segments for LOD
-		int32 LatSegments, LonSegments;
-		GetSegmentsForLOD(LODIndex, LatSegments, LonSegments);
-		Properties.bWants32BitIndices = (LatSegments + 1)*(LonSegments + 1) >= 1 << 16; //1<<16 is the 16 bit integer limit (2^16), so if we have more verts than that then we switch
 
 		// Setup section
 		CreateSection(LODIndex, 0, Properties);
@@ -171,7 +182,7 @@ bool UProceduralPlanetMeshProvider::GetSectionMeshForLOD_Implementation(int32 LO
 	GetSegmentsForLOD(LODIndex, TempLODMultiplier, TempMaxLat, TempMinLat, TempMaxLong, TempMinLong, LatSegments, LonSegments);
 
 	// Build up Section Mesh 
-	return GetSphereMesh(TempRadius, LatSegments, LonSegments, MeshData);
+	return GetSphereMesh(TempRadius, LatSegments, LonSegments, MeshData, Noise);
 }
 
 FRuntimeMeshCollisionSettings UProceduralPlanetMeshProvider::GetCollisionSettings_Implementation()
@@ -252,7 +263,7 @@ float UProceduralPlanetMeshProvider::CalculateScreenSize(int32 LODIndex)
 }
 
 // Calculate actual Mesh data.
-bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData)
+bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, UNoiseLayer* InNoise)
 {
 	TArray<FVector> LatitudeVerts;
 	TArray<FVector> TangentVerts;
@@ -282,10 +293,15 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Lati
 			FVector Normal = LatitudeVerts[LatitudeIndex] * r + FVector(0, 0, z);
 			FVector Position = Normal * SphereRadius;
 			//THIS IS WHERE YOU ADD THE NOISE
-			MeshData.Positions.Add(Position);
 			MeshData.Tangents.Add(Normal, TangentVerts[LatitudeIndex]);
 			MeshData.TexCoords.Add(FVector2D((float)LatitudeIndex / LatitudeSegments, (float)LongitudeIndex / LongitudeSegments));
 			MeshData.Colors.Add(FColor::White);
+
+			if (InNoise)
+			{
+				Position *= (1 + InNoise->GetHeightAt3DPoint(Position));
+			}
+			MeshData.Positions.Add(Position);
 		}
 	}
 	//Creating the tris

@@ -80,14 +80,18 @@ protected:
 	FastNoise Noise;
 
 	//Main noise settings
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 1))
+	UPROPERTY()
 		UNoiseType NoiseType;
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "NoiseType"))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 1, ClampMin = "0"))
 		int Seed;
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Seed"))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Seed", ClampMin = "0.01", ClampMax = "1"))
 		float Frequency;
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Frequency"))
-		float Amplitude;
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Frequency", ClampMin = "0", ClampMax = "10"))
+		float AmplitudeMultiplier;
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "AmplitudeMultiplier"))
+		float ElevationReduction;
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "ElevationReduction"))
+		FVector CentreOffset;
 
 public:
 	// Default constructor 
@@ -110,17 +114,17 @@ class UFractalNoise : public UNoiseLayer
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "0"))
 	float Lacunarity;
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "0", ClampMax = "1"))
 		float Gain;
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "0", ClampMax = "9"))
 		int Octaves;
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 		UNoiseFractalType FractalType;
 
 	UFractalNoise();
-	void UpdateValues() override;
+	virtual void UpdateValues();
 };
 
 //Value Noise
@@ -133,7 +137,7 @@ public:
 		UNoiseInterp Interpolation;
 
 	UValueNoise();
-	void UpdateValues() override;
+	void UpdateValues();
 
 };
 
@@ -147,7 +151,7 @@ public:
 		UNoiseInterp Interpolation;
 
 	UValueFractalNoise();
-	void UpdateValues() override;
+	void UpdateValues();
 };
 
 //Perlin Noise
@@ -160,7 +164,7 @@ public:
 		UNoiseInterp Interpolation;
 
 	UPerlinNoise();
-	void UpdateValues() override;
+	void UpdateValues();
 };
 
 //Perlin Fractal Noise
@@ -169,7 +173,7 @@ class UPerlinFractalNoise : public UFractalNoise {
 	GENERATED_BODY()
 public:
 	UPerlinFractalNoise();
-	void UpdateValues() override;
+	void UpdateValues();
 };
 
 
@@ -179,7 +183,7 @@ class USimplexNoise : public UNoiseLayer {
 	GENERATED_BODY()
 public:
 	USimplexNoise();
-	void UpdateValues() override;
+	void UpdateValues();
 
 };
 
@@ -189,7 +193,7 @@ class USimplexFractalNoise : public UFractalNoise {
 	GENERATED_BODY()
 public:
 	USimplexFractalNoise();
-	void UpdateValues() override;
+	void UpdateValues();
 
 };
 
@@ -199,10 +203,10 @@ class UCellularNoise : public UNoiseLayer {
 	GENERATED_BODY()
 public:
 	UCellularNoise();
-	void UpdateValues() override;
+	void UpdateValues();
 
 	//Cellular specific settings
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2, ClampMin = "0"))
 		float Jitter;
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 		UNoiseCellularType CellularType;
@@ -210,16 +214,5 @@ public:
 		UNoiseCellularReturnType CellularReturnType;
 	//UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 	//	UNoiseLayer* CellularLookupNoise;
-};
 
-//Crater Noise
-UCLASS(EditInlineNew)
-class UCraterNoise : public UCellularNoise {
-	GENERATED_BODY()
-public:
-	UCraterNoise();
-	void UpdateValues() override;
-
-	double GetHeightAt3DPoint(float X, float Y, float Z) override;
-	double GetHeightAt3DPoint(FVector Vertex) override;
 };

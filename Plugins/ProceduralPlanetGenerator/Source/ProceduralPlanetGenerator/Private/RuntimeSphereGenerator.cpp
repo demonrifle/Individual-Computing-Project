@@ -10,7 +10,7 @@ ARuntimeSphereGenerator::ARuntimeSphereGenerator()
 	Radius = 200.f;
 	Resolution = 10;
 
-	Noise = CreateDefaultSubobject<UNoiseLayer>(TEXT("Noise Layers"));
+	Noise = CreateDefaultSubobject<UNoiseLayer>(TEXT("Noise Layers"));	
 }
 
 void ARuntimeSphereGenerator::BeginPlay()
@@ -40,16 +40,17 @@ void ARuntimeSphereGenerator::OnConstruction(const FTransform & Transform)
 		PlanetProvider->SetMinLatitudeSegments(Resolution);
 		PlanetProvider->SetMaxLongitudeSegments(Resolution);
 		PlanetProvider->SetMinLongitudeSegments(Resolution);
+
+		if (Noise)
+		{
+			Noise->UpdateValues();
+			PlanetProvider->SetNoise(Noise);
+		}
 		GetRuntimeMeshComponent()->Initialize(PlanetProvider);
 	}
 
-	////Generate Mesh
-	//GenerateSphere();
+	// Plane provider for test purposes
 
-	//PlanetProvider = NewObject<UProceduralPlanetMeshProvider>(this, TEXT("RuntimeMeshprovider-Planet"));
-
-
-	//GetRuntimeMeshComponent()->Initialize(PlanetProvider);
 
 }
 
@@ -80,6 +81,11 @@ void ARuntimeSphereGenerator::UpdateSphere()
 	PlanetProvider->SetMinLatitudeSegments(Resolution);
 	PlanetProvider->SetMaxLongitudeSegments(Resolution);
 	PlanetProvider->SetMinLongitudeSegments(Resolution);
+	if (Noise)
+	{
+		Noise->UpdateValues();
+		PlanetProvider->SetNoise(Noise);
+	}
 	PlanetProvider->MarkSectionDirty(0, 0);
 }
 
@@ -89,7 +95,8 @@ void ARuntimeSphereGenerator::PostEditChangeProperty(FPropertyChangedEvent & Pro
 	if (PropertyChangedEvent.Property != nullptr)
 	{
 		if (PropertyChangedEvent.Property->GetFName() == FName("Radius") ||
-			PropertyChangedEvent.Property->GetFName() == FName("Resolution"))
+			PropertyChangedEvent.Property->GetFName() == FName("Resolution") ||
+			PropertyChangedEvent.Property->GetFName() == FName("Noise"))
 		{
 			//UpdateSphere();
 		}

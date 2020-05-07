@@ -76,20 +76,29 @@ class NOISEGENERATOR_API UNoiseLayer : public UObject
 	GENERATED_BODY()
 
 protected:
-	//Noise generator
-	FastNoise Noise;
-
-	//Main noise settings
-	UPROPERTY()
+	// FastNoise generator
+		FastNoise Noise;
+	// Type of noise
 		UNoiseType NoiseType;
+
+	// Toggles the visibiltiy of the layer 
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 1))
+		bool LayerVisibility;
+	// Seed value for recreating pseudo-randomn behaviour
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 1, ClampMin = "0"))
 		int Seed;
+	// Frequency is the base spatial value for noise. 
+	// Determines how far apart noise is sampled. 
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Seed", ClampMin = "0.01", ClampMax = "1"))
 		float Frequency;
+	// The Amplitude Multiplier sets the height of the noise.
+	// A value of 1.0 means the maximum height of the noise is equal to the radius.
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Frequency", ClampMin = "0", ClampMax = "10"))
 		float AmplitudeMultiplier;
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "AmplitudeMultiplier"))
+	// The Elevation Reduction reduces the elevation from the noise output by a flat amount
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "AmplitudeMultiplier", ClampMin = "0"))
 		float ElevationReduction;
+	// The Centre Offset shifts the sampling of points, effectively moving features in a desired direction
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "ElevationReduction"))
 		FVector CentreOffset;
 
@@ -114,12 +123,20 @@ class UFractalNoise : public UNoiseLayer
 {
 	GENERATED_BODY()
 public:
+	// Lacunarity determines how much detail is added or removed at each octave
+	// Higher values get small features sticking out of the smooth general pattern
+	// Lower values smooth out the pattern.
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "0"))
-	float Lacunarity;
+		float Lacunarity;
+	// Gain (Persistance) affect how much octaves contribute to the overall shape.
+	// 1 means full affect is applied.
+	// 0 means simpler image and octaves don't matter.
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "0", ClampMax = "1"))
 		float Gain;
+	// Octaves determine the number of levels of detail you want you perlin noise to have.
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "0", ClampMax = "9"))
 		int Octaves;
+	// FractalType determines the fractal type of generation
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 		UNoiseFractalType FractalType;
 
@@ -133,6 +150,8 @@ class UValueNoise : public UNoiseLayer
 {
 	GENERATED_BODY()
 public:
+	// The type of applied Interpolation. 
+	// Hermite and Quintic are smoother than Linear
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 		UNoiseInterp Interpolation;
 
@@ -147,6 +166,8 @@ class UValueFractalNoise : public UFractalNoise
 {
 	GENERATED_BODY()
 public:
+	// The type of applied Interpolation. 
+	// Hermite and Quintic are smoother than Linear
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 		UNoiseInterp Interpolation;
 
@@ -160,6 +181,8 @@ class UPerlinNoise : public UNoiseLayer
 {
 	GENERATED_BODY()
 public:
+	// The type of applied Interpolation. 
+	// Hermite and Quintic are smoother than Linear
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 		UNoiseInterp Interpolation;
 
@@ -205,11 +228,14 @@ public:
 	UCellularNoise();
 	void UpdateValues();
 
-	//Cellular specific settings
+	// Jitter the maximum distance a cellular point can move from its grid position
+	// Setting this high will make artifacts more common
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2, ClampMin = "0"))
 		float Jitter;
+	// Sets distance function used in cellular noise calculations
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 		UNoiseCellularType CellularType;
+	// Sets return type from cellular noise calculations
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 		UNoiseCellularReturnType CellularReturnType;
 	//UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))

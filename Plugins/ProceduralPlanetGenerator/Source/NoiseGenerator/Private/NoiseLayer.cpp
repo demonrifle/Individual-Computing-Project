@@ -6,6 +6,7 @@
 // Abstract Base Class
 UNoiseLayer::UNoiseLayer()
 {
+	LayerVisibility = true;
 	Seed = 1337;
 	Frequency = 0.02f;
 	AmplitudeMultiplier = 0.2f;
@@ -16,7 +17,10 @@ UNoiseLayer::UNoiseLayer()
 double UNoiseLayer::GetHeightAt3DPoint(float X, float Y, float Z)
 {
 	// Check initialized
-	if (this == nullptr) return 1;
+	if (this == nullptr) return 0;
+
+	// Check if layer should be visible
+	if (!LayerVisibility) return 0;
 
 	// Lock CentreOffset to a step equal to the current frequency multiplied by N
 	CentreOffset.X = CentreOffset.X - fmod(CentreOffset.X, Frequency);
@@ -41,6 +45,9 @@ double UNoiseLayer::GetHeightAt3DPoint(FVector Vertex)
 {
 	// Check initialized
 	if (this == nullptr) return 1;
+
+	// Check if layer should be visible
+	if (!LayerVisibility) return 0;
 
 	// Lock CentreOffset to a step equal to the current frequency multiplied by N
 	CentreOffset.X = CentreOffset.X - fmod(CentreOffset.X, Frequency);
@@ -141,6 +148,7 @@ void UValueNoise::UpdateValues()
 UValueFractalNoise::UValueFractalNoise() 
 {
 	Noise.SetNoiseType(FastNoise::ValueFractal);
+	Interpolation = UNoiseInterp::Quintic;
 
 	UpdateValues();
 }
@@ -153,7 +161,7 @@ void UValueFractalNoise::UpdateValues() {
 UPerlinNoise::UPerlinNoise()
 {
 	Noise.SetNoiseType(FastNoise::Perlin);
-
+	Interpolation = UNoiseInterp::Quintic;
 	UpdateValues();
 }
 
@@ -221,6 +229,9 @@ void USimplexFractalNoise::UpdateValues()
 UCellularNoise::UCellularNoise()
 {
 	Noise.SetNoiseType(FastNoise::Cellular);
+	Jitter = 0.45f;
+	CellularType = UNoiseCellularType::Euclidean;
+	CellularReturnType = UNoiseCellularReturnType::CellValue;
 	UpdateValues();
 }
 

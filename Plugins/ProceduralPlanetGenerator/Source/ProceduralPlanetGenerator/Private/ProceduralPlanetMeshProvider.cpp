@@ -299,7 +299,8 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Lati
 
 			if (InNoise)
 			{
-				Position *= (1 + InNoise->GetHeightAt3DPoint(Position));
+				float NoiseValue = InNoise->GetHeightAt3DPoint(Position);
+				Position *= ( 1 + NoiseValue);
 			}
 			MeshData.Positions.Add(Position);
 		}

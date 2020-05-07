@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "RuntimeMeshActor.h"
-#include "Providers/RuntimeMeshProviderSphere.h"
 #include "ProceduralPlanetMeshProvider.h"
+#include "ProceduralPlanetSettings.h"
 #include "NoiseLayer.h"
 
 #include "RuntimeSphereGenerator.generated.h"
@@ -29,10 +29,13 @@ public:
 	UPROPERTY(Category = "GeneralPlanetSettings", EditAnywhere)
 		int32 Resolution;
 
-	UProceduralPlanetMeshProvider* PlanetProvider;
+		UProceduralPlanetMeshProvider* PlanetProvider;
 
 	UPROPERTY(EditAnywhere, Instanced)
-	UNoiseLayer* Noise;
+		UNoiseLayer* Noise;
+
+	UPROPERTY(EditAnywhere, Category = "Planet Settings")
+		UProceduralPlanetSettings* PlanetSettings;
 
 protected:
 	// Called when the game starts or when spawned

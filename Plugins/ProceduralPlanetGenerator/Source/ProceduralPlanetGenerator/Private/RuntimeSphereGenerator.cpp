@@ -11,6 +11,7 @@ ARuntimeSphereGenerator::ARuntimeSphereGenerator()
 	Resolution = 10;
 
 	Noise = CreateDefaultSubobject<UNoiseLayer>(TEXT("Noise Layers"));	
+	PlanetSettings = CreateDefaultSubobject<UProceduralPlanetSettings>(TEXT("Planet Settings"));
 }
 
 void ARuntimeSphereGenerator::BeginPlay()

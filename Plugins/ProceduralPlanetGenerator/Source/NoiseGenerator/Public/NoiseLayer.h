@@ -8,6 +8,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "FastNoise.h"
+#include "DVector.h"
 
 #include "NoiseLayer.generated.h"
 
@@ -64,12 +65,12 @@ enum class UNoiseCellularReturnType : uint8
 	Distance2Div,
 };
 
-/**
- * The class is declared as UCLASS to be seen and edited inside the Editor
- * It has no destructors as UObjects have automatic garbage collection
-
- Abstract Noise Class to be inheritted from
- */
+//
+// The class is declared as UCLASS to be seen and edited inside the Editor
+// It has no destructors as UObjects have automatic garbage collection
+//
+// Abstract Noise Class to be inheritted from
+//
 UCLASS(Abstract)
 class NOISEGENERATOR_API UNoiseLayer : public UObject
 {
@@ -89,14 +90,13 @@ protected:
 		int Seed;
 	// Frequency is the base spatial value for noise. 
 	// Determines how far apart noise is sampled. 
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Seed", ClampMin = "0.01", ClampMax = "1"))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Seed", ClampMin = "0.01", ClampMax = "10"))
 		float Frequency;
-	// The Amplitude Multiplier sets the height of the noise.
-	// A value of 1.0 means the maximum height of the noise is equal to the radius.
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Frequency", ClampMin = "0", ClampMax = "10"))
-		float AmplitudeMultiplier;
+	// The Amplitude sets the height of the noise.
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Frequency", ClampMin = "0"))
+		float Amplitude;
 	// The Elevation Reduction reduces the elevation from the noise output by a flat amount
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "AmplitudeMultiplier", ClampMin = "0"))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Amplitude", ClampMin = "0"))
 		float ElevationReduction;
 	// The Centre Offset shifts the sampling of points, effectively moving features in a desired direction
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "ElevationReduction"))
@@ -109,7 +109,7 @@ public:
 	// Returns noise for a given 3D point.
 	// Set as double for better precision
 	virtual double GetHeightAt3DPoint(float X, float Y, float Z);
-	virtual double GetHeightAt3DPoint(FVector Vertex);
+	virtual double GetHeightAt3DPoint(DVector Vertex);
 
 	// Updates the values of the FastNoise object by setting its properties according to the ones from this class
 	virtual void UpdateValues();
@@ -126,7 +126,7 @@ public:
 	// Lacunarity determines how much detail is added or removed at each octave
 	// Higher values get small features sticking out of the smooth general pattern
 	// Lower values smooth out the pattern.
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "0"))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "0", ClampMax = "10"))
 		float Lacunarity;
 	// Gain (Persistance) affect how much octaves contribute to the overall shape.
 	// 1 means full affect is applied.
@@ -134,7 +134,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "0", ClampMax = "1"))
 		float Gain;
 	// Octaves determine the number of levels of detail you want you perlin noise to have.
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "0", ClampMax = "9"))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "1", ClampMax = "10"))
 		int Octaves;
 	// FractalType determines the fractal type of generation
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
@@ -241,4 +241,13 @@ public:
 	//UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 	//	UNoiseLayer* CellularLookupNoise;
 
+};
+
+UCLASS(EditInlineNew)
+class UWhiteNoise : public UNoiseLayer
+{
+	GENERATED_BODY()
+public:
+	UWhiteNoise();
+	void UpdateValues();
 };

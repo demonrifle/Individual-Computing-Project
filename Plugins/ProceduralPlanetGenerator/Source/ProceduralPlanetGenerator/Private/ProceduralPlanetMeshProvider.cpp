@@ -2,6 +2,7 @@
 
 
 #include "ProceduralPlanetMeshProvider.h"
+#include "DVector.h"
 #include "RuntimeMeshComponentPlugin.h"
 
 UProceduralPlanetMeshProvider::UProceduralPlanetMeshProvider()
@@ -13,7 +14,6 @@ UProceduralPlanetMeshProvider::UProceduralPlanetMeshProvider()
 		, MinLongitudeSegments(5)
 		, LODMultiplier(0.75)
 		, SphereMaterial(nullptr)
-		, Noise(nullptr)
 {
 	MaxLOD = GetMaxNumberOfLODs() - 1;
 }
@@ -117,13 +117,13 @@ void UProceduralPlanetMeshProvider::SetSphereMaterial(UMaterialInterface* InSphe
 	this->SetupMaterialSlot(0, FName("Sphere Base"), SphereMaterial);
 }
 
-UNoiseLayer* UProceduralPlanetMeshProvider::GetNoise() const
+TArray<UNoiseLayer*> UProceduralPlanetMeshProvider::GetNoise() const
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	return Noise;
 }
 
-void UProceduralPlanetMeshProvider::SetNoise(UNoiseLayer* InNoiseLayer)
+void UProceduralPlanetMeshProvider::SetNoise(TArray<UNoiseLayer*> InNoiseLayer)
 {
 	FScopeLock Lock(&PropertySyncRoot);
 
@@ -263,7 +263,7 @@ float UProceduralPlanetMeshProvider::CalculateScreenSize(int32 LODIndex)
 }
 
 // Calculate actual Mesh data.
-bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, UNoiseLayer* InNoise)
+bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, TArray<UNoiseLayer*> InNoise)
 {
 	TArray<FVector> LatitudeVerts;
 	TArray<FVector> TangentVerts;
@@ -291,16 +291,21 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Lati
 		for (int32 LatitudeIndex = 0; LatitudeIndex < LatitudeSegments + 1; LatitudeIndex++) //In total, we only waste (2*LatitudeSegments + LongitudeSegments - 2) vertices but save LatitudeSegments*LongitudeSegments operations
 		{
 			FVector Normal = LatitudeVerts[LatitudeIndex] * r + FVector(0, 0, z);
-			FVector Position = Normal * SphereRadius;
+			FVector Position = Normal;
 			//THIS IS WHERE YOU ADD THE NOISE
 			MeshData.Tangents.Add(Normal, TangentVerts[LatitudeIndex]);
 			MeshData.TexCoords.Add(FVector2D((float)LatitudeIndex / LatitudeSegments, (float)LongitudeIndex / LongitudeSegments));
 			MeshData.Colors.Add(FColor::White);
 
-			if (InNoise)
+			if (InNoise.Num() != 0)
 			{
-				float NoiseValue = InNoise->GetHeightAt3DPoint(Position);
-				Position *= ( 1 + NoiseValue);
+				float NoiseValue = 0.f;
+				DVector Vector = DVector(Position);
+				for (UNoiseLayer* NoiseLayer : InNoise)
+				{
+					NoiseValue += NoiseLayer->GetHeightAt3DPoint(Vector);
+				}
+				Position *= ( SphereRadius + NoiseValue);
 			}
 			MeshData.Positions.Add(Position);
 		}

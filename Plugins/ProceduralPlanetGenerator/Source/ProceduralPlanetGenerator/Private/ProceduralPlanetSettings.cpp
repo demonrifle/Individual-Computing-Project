@@ -3,3 +3,9 @@
 
 #include "ProceduralPlanetSettings.h"
 
+UProceduralPlanetSettings::UProceduralPlanetSettings()
+{
+	Radius = 200.0f;
+	Resolution = 50;
+	NoiseSettings.Add(CreateDefaultSubobject<UNoiseLayer>(TEXT("Noise Layers")));
+}

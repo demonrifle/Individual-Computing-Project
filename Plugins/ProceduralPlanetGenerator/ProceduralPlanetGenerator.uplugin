@@ -30,11 +30,6 @@
 		{
 			"Name": "RuntimeMeshComponent",
 			"Enabled": true
-		},
-
-		{
-			"Name": "SimplexNoise",
-			"Enabled": true
 		}
 	]
 }

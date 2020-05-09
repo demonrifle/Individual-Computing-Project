@@ -29,13 +29,13 @@ public:
 	UPROPERTY(Category = "GeneralPlanetSettings", EditAnywhere)
 		int32 Resolution;
 
-		UProceduralPlanetMeshProvider* PlanetProvider;
-
 	UPROPERTY(EditAnywhere, Instanced)
-		UNoiseLayer* Noise;
+		TArray<UNoiseLayer*> Noise;
 
-	UPROPERTY(EditAnywhere, Category = "Planet Settings")
-		UProceduralPlanetSettings* PlanetSettings;
+	//UPROPERTY(EditAnywhere, Instanced, Category = "Planet Settings")
+	//	UProceduralPlanetSettings* PlanetSettings;
+
+	UProceduralPlanetMeshProvider* PlanetProvider;
 
 protected:
 	// Called when the game starts or when spawned

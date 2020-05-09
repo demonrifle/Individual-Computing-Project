@@ -23,4 +23,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, Instanced)
 		TArray<UNoiseLayer*> NoiseSettings;
+public:
+	UProceduralPlanetSettings();
 };

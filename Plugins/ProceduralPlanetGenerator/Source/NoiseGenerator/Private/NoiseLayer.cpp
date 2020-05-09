@@ -9,7 +9,7 @@ UNoiseLayer::UNoiseLayer()
 	LayerVisibility = true;
 	Seed = 1337;
 	Frequency = 0.02f;
-	AmplitudeMultiplier = 0.2f;
+	Amplitude = 200.0f;
 	ElevationReduction = 0.f;
 	CentreOffset = FVector(0.f, 0.f, 0.f);
 }
@@ -22,18 +22,20 @@ double UNoiseLayer::GetHeightAt3DPoint(float X, float Y, float Z)
 	// Check if layer should be visible
 	if (!LayerVisibility) return 0;
 
-	// Lock CentreOffset to a step equal to the current frequency multiplied by N
-	CentreOffset.X = CentreOffset.X - fmod(CentreOffset.X, Frequency);
-	CentreOffset.Y = CentreOffset.Y - fmod(CentreOffset.Y, Frequency);
-	CentreOffset.Z = CentreOffset.Z - fmod(CentreOffset.Z, Frequency);
+	DVector Vertex = DVector(FVector(X, Y, Z));
+
+	// Lock CentreOffset to a step for precision
+	CentreOffset.X = CentreOffset.X - fmod(CentreOffset.X, 0.01);
+	CentreOffset.Y = CentreOffset.Y - fmod(CentreOffset.Y, 0.01);
+	CentreOffset.Z = CentreOffset.Z - fmod(CentreOffset.Z, 0.01);
 
 	// Get Noise for offset point
-	float NoiseValue = Noise.GetNoise(X + CentreOffset.X, Y + CentreOffset.Y, Z + CentreOffset.Z);
+	double NoiseValue = Noise.GetNoise(Vertex.x + CentreOffset.X, Vertex.y + CentreOffset.Y, Vertex.z + CentreOffset.Z);
 
 	// The returned value is normally between -1 and 1. Add 1 to make it 0-2.
 	// Divide by 2 to make it 0-1.
-	// Multiply it by AmplitudeMultiplier to get final result and reduce that by the elevation reduction 
-	double Value = ((1 + NoiseValue) / 2 * AmplitudeMultiplier) - ElevationReduction;
+	// Multiply it by Amplitude to get final result and reduce that by the elevation reduction 
+	double Value = ((1 + NoiseValue) / 2 * Amplitude) - ElevationReduction;
 
 	// Return the calculated value ot 0 of lower than that after elevation reduction
 	Value = fmax(0.f, Value);
@@ -41,7 +43,7 @@ double UNoiseLayer::GetHeightAt3DPoint(float X, float Y, float Z)
 	return Value;
 }
 
-double UNoiseLayer::GetHeightAt3DPoint(FVector Vertex)
+double UNoiseLayer::GetHeightAt3DPoint(DVector Vertex)
 {
 	// Check initialized
 	if (this == nullptr) return 1;
@@ -49,18 +51,18 @@ double UNoiseLayer::GetHeightAt3DPoint(FVector Vertex)
 	// Check if layer should be visible
 	if (!LayerVisibility) return 0;
 
-	// Lock CentreOffset to a step equal to the current frequency multiplied by N
-	CentreOffset.X = CentreOffset.X - fmod(CentreOffset.X, Frequency);
-	CentreOffset.Y = CentreOffset.Y - fmod(CentreOffset.Y, Frequency);
-	CentreOffset.Z = CentreOffset.Z - fmod(CentreOffset.Z, Frequency);
+	// Lock CentreOffset to a step for precision
+	CentreOffset.X = CentreOffset.X - fmod(CentreOffset.X, 0.01);
+	CentreOffset.Y = CentreOffset.Y - fmod(CentreOffset.Y, 0.01);
+	CentreOffset.Z = CentreOffset.Z - fmod(CentreOffset.Z, 0.01);
 
 	// Get Noise for offset point
-	float NoiseValue = Noise.GetNoise(Vertex.X + CentreOffset.X, Vertex.Y + CentreOffset.Y, Vertex.Z + CentreOffset.Z);
+	double NoiseValue = Noise.GetNoise(Vertex.x + CentreOffset.X, Vertex.y + CentreOffset.Y, Vertex.z + CentreOffset.Z);
 
 	// The returned value is normally between -1 and 1. Add 1 to make it 0-2.
 	// Divide by 2 to make it 0-1.
-	// Multiply it by AmplitudeMultiplier to get final result and reduce that by the elevation reduction 
-	double Value = ((1 + NoiseValue) / 2 * AmplitudeMultiplier) - ElevationReduction;
+	// Multiply it by Amplitude to get final result and reduce that by the elevation reduction 
+	double Value = ((1 + NoiseValue) / 2 * Amplitude) - ElevationReduction;
 
 	// Return the calculated value ot 0 of lower than that after elevation reduction
 	Value = fmax(0.f, Value);
@@ -153,7 +155,26 @@ UValueFractalNoise::UValueFractalNoise()
 	UpdateValues();
 }
 
-void UValueFractalNoise::UpdateValues() {
+void UValueFractalNoise::UpdateValues() 
+{
+	switch (Interpolation)
+	{
+	case UNoiseInterp::Linear:
+	{
+		Noise.SetInterp(FastNoise::Interp::Linear);
+		break;
+	}
+	case UNoiseInterp::Hermite:
+	{
+		Noise.SetInterp(FastNoise::Interp::Hermite);
+		break;
+	}
+	case UNoiseInterp::Quintic:
+	{
+		Noise.SetInterp(FastNoise::Interp::Quintic);
+		break;
+	}
+	}
 	Super::UpdateValues();
 }
 
@@ -258,6 +279,7 @@ void UCellularNoise::UpdateValues()
 		break;
 	}
 	}
+
 	switch (CellularReturnType)
 	{
 	case UNoiseCellularReturnType::CellValue:
@@ -297,5 +319,15 @@ void UCellularNoise::UpdateValues()
 	}
 	}
 
+	Super::UpdateValues();
+}
+
+UWhiteNoise::UWhiteNoise()
+{
+	Noise.SetNoiseType(FastNoise::NoiseType::WhiteNoise);
+}
+
+void UWhiteNoise::UpdateValues()
+{
 	Super::UpdateValues();
 }

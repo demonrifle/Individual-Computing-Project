@@ -31,7 +31,7 @@ private:
 
 		UMaterialInterface* SphereMaterial;
 
-		UNoiseLayer* Noise;
+		TArray<UNoiseLayer*> Noise;
 
 public:
 
@@ -58,8 +58,8 @@ public:
 		UMaterialInterface* GetSphereMaterial() const;
 		void SetSphereMaterial(UMaterialInterface* InSphereMaterial);
 
-		UNoiseLayer* GetNoise() const;
-		void SetNoise(UNoiseLayer* InNoiseLayer);
+		TArray<UNoiseLayer*> GetNoise() const;
+		void SetNoise(TArray<UNoiseLayer*> InNoiseLayer);
 
 protected:
 	virtual void Initialize_Implementation() override;
@@ -81,7 +81,7 @@ private:
 		LatitudeSegments = FMath::Max(FMath::RoundToInt(MaxLat * FMath::Pow(LODMul, LODIndex)), MinLat);
 		LongitudeSegments = FMath::Max(FMath::RoundToInt(MaxLon * FMath::Pow(LODMul, LODIndex)), MinLon);
 	}
-	static bool GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, UNoiseLayer* InNoise);
+	static bool GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, TArray<UNoiseLayer*> InNoise);
 	void UpdateMeshParameters(bool bAffectsCollision);
 
 };

@@ -24,16 +24,8 @@ public:
 	ARuntimeSphereGenerator();
 	//ARuntimeSphereGenerator(float Radius, float Resolution);
 
-	UPROPERTY(Category = "GeneralPlanetSettings", EditAnywhere)
-		float Radius;
-	UPROPERTY(Category = "GeneralPlanetSettings", EditAnywhere)
-		int32 Resolution;
-
-	UPROPERTY(EditAnywhere, Instanced)
-		TArray<UNoiseLayer*> Noise;
-
-	//UPROPERTY(EditAnywhere, Instanced, Category = "Planet Settings")
-	//	UProceduralPlanetSettings* PlanetSettings;
+	UPROPERTY(VisibleAnywhere, Instanced, Category = "Planet Settings")
+		UProceduralPlanetSettings* PlanetSettings;
 
 	UProceduralPlanetMeshProvider* PlanetProvider;
 

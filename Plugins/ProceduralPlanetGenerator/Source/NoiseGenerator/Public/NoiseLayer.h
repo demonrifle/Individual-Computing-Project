@@ -56,7 +56,6 @@ UENUM()
 enum class UNoiseCellularReturnType : uint8 
 {
 	CellValue,
-	NoiseLookup,
 	Distance,
 	Distance2,
 	Distance2Add,
@@ -85,7 +84,7 @@ protected:
 	// Toggles the visibiltiy of the layer 
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 1))
 		bool LayerVisibility;
-	// Seed value for recreating pseudo-randomn behaviour
+	// Seed value for recreating pseudo-random noise
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 1, ClampMin = "0"))
 		int Seed;
 	// Frequency is the base spatial value for noise. 
@@ -101,6 +100,9 @@ protected:
 	// The Centre Offset shifts the sampling of points, effectively moving features in a desired direction
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "ElevationReduction"))
 		FVector CentreOffset;
+	// Inverts noise values setting highs to lows and vice versa
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "CentreOffset", DisplayName = "Invert Noise"))
+		bool IsInverted;
 
 public:
 	// Default constructor 
@@ -240,7 +242,6 @@ public:
 		UNoiseCellularReturnType CellularReturnType;
 	//UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 	//	UNoiseLayer* CellularLookupNoise;
-
 };
 
 UCLASS(EditInlineNew)

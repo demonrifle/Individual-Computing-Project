@@ -131,6 +131,21 @@ void UProceduralPlanetMeshProvider::SetNoise(TArray<UNoiseLayer*> InNoiseLayer)
 	UpdateMeshParameters(true);
 }
 
+UProceduralPlanetSettings * UProceduralPlanetMeshProvider::GetProceduralPlanetSettings() const
+{
+	FScopeLock Lock(&PropertySyncRoot);
+	return ProceduralPlanetSettings;
+}
+
+void UProceduralPlanetMeshProvider::SetProceduralPlanetSettings(UProceduralPlanetSettings * InProceduralPlanetSettings)
+{
+	FScopeLock Lock(&PropertySyncRoot);
+
+	ProceduralPlanetSettings = InProceduralPlanetSettings;
+	UpdateMeshParameters(true);
+
+}
+
 void UProceduralPlanetMeshProvider::Initialize_Implementation()
 {
 	SetupMaterialSlot(0, FName("Sphere Base"), SphereMaterial);
@@ -182,7 +197,7 @@ bool UProceduralPlanetMeshProvider::GetSectionMeshForLOD_Implementation(int32 LO
 	GetSegmentsForLOD(LODIndex, TempLODMultiplier, TempMaxLat, TempMinLat, TempMaxLong, TempMinLong, LatSegments, LonSegments);
 
 	// Build up Section Mesh 
-	return GetSphereMesh(TempRadius, LatSegments, LonSegments, MeshData, Noise);
+	return GetSphereMesh(TempRadius, LatSegments, LonSegments, MeshData, ProceduralPlanetSettings);
 }
 
 FRuntimeMeshCollisionSettings UProceduralPlanetMeshProvider::GetCollisionSettings_Implementation()
@@ -263,7 +278,7 @@ float UProceduralPlanetMeshProvider::CalculateScreenSize(int32 LODIndex)
 }
 
 // Calculate actual Mesh data.
-bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, TArray<UNoiseLayer*> InNoise)
+bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, UProceduralPlanetSettings* PlanetSettings)
 {
 	TArray<FVector> LatitudeVerts;
 	TArray<FVector> TangentVerts;
@@ -292,22 +307,31 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Lati
 		{
 			FVector Normal = LatitudeVerts[LatitudeIndex] * r + FVector(0, 0, z);
 			FVector Position = Normal;
-			//THIS IS WHERE YOU ADD THE NOISE
+
+			// Valide Planet Settings
+			if (PlanetSettings)
+			{
+				if (PlanetSettings->NoiseSettings.Num() != 0)
+				{
+					double NoiseValue = 0.f;
+					DVector Vector = DVector(Position);
+					for (UNoiseLayer* NoiseLayer : PlanetSettings->NoiseSettings)
+					{
+						// Validate Noise Layer
+						if (NoiseLayer)
+						{
+							NoiseValue += NoiseLayer->GetHeightAt3DPoint(Vector);
+						}
+					}
+					Position *= (SphereRadius + NoiseValue);
+				}
+			}
+			else Position *= SphereRadius;
+
+			MeshData.Positions.Add(Position);
 			MeshData.Tangents.Add(Normal, TangentVerts[LatitudeIndex]);
 			MeshData.TexCoords.Add(FVector2D((float)LatitudeIndex / LatitudeSegments, (float)LongitudeIndex / LongitudeSegments));
 			MeshData.Colors.Add(FColor::White);
-
-			if (InNoise.Num() != 0)
-			{
-				float NoiseValue = 0.f;
-				DVector Vector = DVector(Position);
-				for (UNoiseLayer* NoiseLayer : InNoise)
-				{
-					NoiseValue += NoiseLayer->GetHeightAt3DPoint(Vector);
-				}
-				Position *= ( SphereRadius + NoiseValue);
-			}
-			MeshData.Positions.Add(Position);
 		}
 	}
 	//Creating the tris

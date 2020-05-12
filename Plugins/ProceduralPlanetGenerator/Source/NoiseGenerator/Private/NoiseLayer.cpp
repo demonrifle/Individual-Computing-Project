@@ -2,6 +2,7 @@
 
 
 #include "NoiseLayer.h"
+#include "Engine/Engine.h"
 
 // Abstract Base Class
 UNoiseLayer::UNoiseLayer()
@@ -12,6 +13,7 @@ UNoiseLayer::UNoiseLayer()
 	Amplitude = 200.0f;
 	ElevationReduction = 0.f;
 	CentreOffset = FVector(0.f, 0.f, 0.f);
+	IsInverted = false;
 }
 
 double UNoiseLayer::GetHeightAt3DPoint(float X, float Y, float Z)
@@ -59,12 +61,19 @@ double UNoiseLayer::GetHeightAt3DPoint(DVector Vertex)
 	// Get Noise for offset point
 	double NoiseValue = Noise.GetNoise(Vertex.x + CentreOffset.X, Vertex.y + CentreOffset.Y, Vertex.z + CentreOffset.Z);
 
+	//Sanitize
+
+	// Invert if set
+	IsInverted ? NoiseValue *= -1 : NoiseValue;
+
 	// The returned value is normally between -1 and 1. Add 1 to make it 0-2.
 	// Divide by 2 to make it 0-1.
-	// Multiply it by Amplitude to get final result and reduce that by the elevation reduction 
-	double Value = ((1 + NoiseValue) / 2 * Amplitude) - ElevationReduction;
+	NoiseValue = (1 + NoiseValue) / 2;
 
-	// Return the calculated value ot 0 of lower than that after elevation reduction
+	// Multiply it by Amplitude to get final result and reduce that by the elevation reduction 
+	double Value = ( NoiseValue * Amplitude) - ElevationReduction;
+
+	// Return the calculated value of 0 or higher after elevation reduction
 	Value = fmax(0.f, Value);
 
 	return Value;
@@ -111,7 +120,7 @@ void UFractalNoise::UpdateValues()
 	Noise.SetFractalLacunarity(Lacunarity);
 	Noise.SetFractalGain(Gain);
 	Noise.SetFractalOctaves(Octaves);
-	Super::UpdateValues();
+	UNoiseLayer::UpdateValues();
 }
 
 // Value Noise
@@ -142,7 +151,7 @@ void UValueNoise::UpdateValues()
 		break;
 	}
 	}
-	Super::UpdateValues();
+	UNoiseLayer::UpdateValues();
 	
 }
 
@@ -175,7 +184,7 @@ void UValueFractalNoise::UpdateValues()
 		break;
 	}
 	}
-	Super::UpdateValues();
+	UFractalNoise::UpdateValues();
 }
 
 // Perlin Noise
@@ -206,7 +215,7 @@ void UPerlinNoise::UpdateValues()
 		break;
 	}
 	}
-	Super::UpdateValues();
+	UNoiseLayer::UpdateValues();
 
 }
 
@@ -220,7 +229,7 @@ UPerlinFractalNoise::UPerlinFractalNoise()
 
 void UPerlinFractalNoise::UpdateValues()
 {
-	Super::UpdateValues();
+	UFractalNoise::UpdateValues();
 }
 
 // Simplex Noise
@@ -231,7 +240,7 @@ USimplexNoise::USimplexNoise()
 }
 
 void USimplexNoise::UpdateValues() {
-	Super::UpdateValues();
+	UNoiseLayer::UpdateValues();
 }
 
 // Simplex Fractal Noise
@@ -243,14 +252,14 @@ USimplexFractalNoise::USimplexFractalNoise()
 
 void USimplexFractalNoise::UpdateValues()
 {
-	Super::UpdateValues();
+	UFractalNoise::UpdateValues();
 }
 
 // Cellular Noise
 UCellularNoise::UCellularNoise()
 {
 	Noise.SetNoiseType(FastNoise::Cellular);
-	Jitter = 0.45f;
+	Jitter = 0.45f;;
 	CellularType = UNoiseCellularType::Euclidean;
 	CellularReturnType = UNoiseCellularReturnType::CellValue;
 	UpdateValues();
@@ -319,7 +328,7 @@ void UCellularNoise::UpdateValues()
 	}
 	}
 
-	Super::UpdateValues();
+	UNoiseLayer::UpdateValues();
 }
 
 UWhiteNoise::UWhiteNoise()
@@ -329,5 +338,7 @@ UWhiteNoise::UWhiteNoise()
 
 void UWhiteNoise::UpdateValues()
 {
-	Super::UpdateValues();
+	UNoiseLayer::UpdateValues();
 }
+
+

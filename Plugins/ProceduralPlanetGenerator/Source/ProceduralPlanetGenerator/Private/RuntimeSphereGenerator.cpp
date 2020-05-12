@@ -10,8 +10,6 @@
 ARuntimeSphereGenerator::ARuntimeSphereGenerator()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	Radius = 200.f;
-	Resolution = 10;
 
 	//Noise = CreateDefaultSubobject<UNoiseLayer>(TEXT("Noise Layers"));	
 }
@@ -37,7 +35,7 @@ void ARuntimeSphereGenerator::OnConstruction(const FTransform & Transform)
 	//if (StaticProvider)
 	//{
 	//	GetRuntimeMeshComponent()->Initialize(StaticProvider);
-
+	//
 	//	// This creates 3 positions for a triangle
 	//	TArray<FVector> Positions;
 	//	// This indexes our simple triangle
@@ -47,15 +45,15 @@ void ARuntimeSphereGenerator::OnConstruction(const FTransform & Transform)
 	//	TArray<FVector> EmptyNormals;
 	//	TArray<FVector2D> EmptyTexCoords;
 	//	TArray<FRuntimeMeshTangent> EmptyTangents;
-
+	//
 	//	Noise->UpdateValues();
 	//	for (int i = 0; i < Resolution; i++)
 	//	{
 	//		for (int j = 0; j < Resolution; j++)
 	//		{
-	//			FVector Vertex = FVector(i * 10, j * 10, 1.0f);
-	//			Vertex.Z *= (Noise->GetHeightAt3DPoint(Vertex));
-	//			Positions.Add(Vertex);
+	//			DVector Vertex = DVector(FVector(i * 10, j * 10, 1.0f));
+	//			Vertex.Z *= (Noise->GetHeightAt3DPointForAllLayers(Vertex));
+	//			Positions.Add(FVector(Vertex));
 	//			EmptyTexCoords.Add(FVector2D(Vertex.X/10, Vertex.Y/10));
 	//			if (i != Resolution - 1 && j != Resolution - 1)
 	//			{
@@ -68,36 +66,17 @@ void ARuntimeSphereGenerator::OnConstruction(const FTransform & Transform)
 	//			}
 	//		}
 	//	}
-
+	//
 	//	StaticProvider->CreateSectionFromComponents(0, 0, 0, Positions, Triangles, EmptyNormals, EmptyTexCoords, Colors, EmptyTangents, ERuntimeMeshUpdateFrequency::Infrequent, true);
 	//}
 
-
-	if (PlanetProvider)
+	if (!PlanetProvider)
 	{
-		UpdateSphere();
+		GenerateSphere();
 	} 
 	else
 	{
-		PlanetProvider = NewObject<UProceduralPlanetMeshProvider>(this, TEXT("RuntimeMeshprovider-Planet"));
-		PlanetProvider->SetSphereRadius(Radius);
-		PlanetProvider->SetMaxLatitudeSegments(Resolution);
-		PlanetProvider->SetMinLatitudeSegments(Resolution);
-		PlanetProvider->SetMaxLongitudeSegments(Resolution);
-		PlanetProvider->SetMinLongitudeSegments(Resolution);
-
-		Noise.Add(NewObject<UNoiseLayer>(this, TEXT("NoiseLayer")));
-		Noise.Add(NewObject<UNoiseLayer>(this, TEXT("NoiseLayer")));
-
-		if (Noise.Num() != 0)
-		{
-			for (UNoiseLayer* NoiseLayer : Noise)
-			{
-				NoiseLayer->UpdateValues();
-			}
-			PlanetProvider->SetNoise(Noise);
-		}
-		GetRuntimeMeshComponent()->Initialize(PlanetProvider);
+		UpdateSphere();
 	}
 	   	 
 }
@@ -105,40 +84,40 @@ void ARuntimeSphereGenerator::OnConstruction(const FTransform & Transform)
 void ARuntimeSphereGenerator::GenerateSphere()
 {
 	PlanetProvider = NewObject<UProceduralPlanetMeshProvider>(this, TEXT("RuntimeMeshprovider-Planet"));
-	PlanetProvider->Initialize();
+	PlanetSettings = NewObject<UProceduralPlanetSettings>(this, TEXT("PlanetSettings"));
 
-	//PlanetSettings = NewObject<UProceduralPlanetSettings>(this, TEXT("ProceduralPlanetSettings"));
-	//if (StaticProvider && SphereData)
-	//{
-	//	FRuntimeMeshSectionProperties MeshProperties;
-	//	MeshProperties.bCastsShadow = true;
-	//	MeshProperties.bIsVisible = true;
-	//	MeshProperties.MaterialSlot = 0;
-	//	MeshProperties.bWants32BitIndices = true;
-	//	MeshProperties.bUseHighPrecisionTangents = true;
-	//	MeshProperties.bUseHighPrecisionTexCoords = true;
-	//	MeshProperties.UpdateFrequency = ERuntimeMeshUpdateFrequency::Infrequent;
+	PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
+	PlanetProvider->SetMaxLatitudeSegments(PlanetSettings->Resolution);
+	PlanetProvider->SetMinLatitudeSegments(PlanetSettings->Resolution);
+	PlanetProvider->SetMaxLongitudeSegments(PlanetSettings->Resolution);
+	PlanetProvider->SetMinLongitudeSegments(PlanetSettings->Resolution);
 
-	//	StaticProvider->CreateSection(0,0, MeshProperties,*SphereData->MeshData,true);
-	//}
+	if (PlanetSettings->NoiseSettings.Num() != 0)
+	{
+		PlanetSettings->UpdateNoiseSettings();
+		PlanetProvider->SetNoise(PlanetSettings->NoiseSettings);
+	}
+
+	GetRuntimeMeshComponent()->Initialize(PlanetProvider);
 }
 
 void ARuntimeSphereGenerator::UpdateSphere()
 {
 	// Update it
-	PlanetProvider->SetSphereRadius(Radius);
-	PlanetProvider->SetMaxLatitudeSegments(Resolution);
-	PlanetProvider->SetMinLatitudeSegments(Resolution);
-	PlanetProvider->SetMaxLongitudeSegments(Resolution);
-	PlanetProvider->SetMinLongitudeSegments(Resolution);
-	if (Noise.Num() != 0)
+	PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
+	PlanetProvider->SetMaxLatitudeSegments(PlanetSettings->Resolution);
+	PlanetProvider->SetMinLatitudeSegments(PlanetSettings->Resolution);
+	PlanetProvider->SetMaxLongitudeSegments(PlanetSettings->Resolution);
+	PlanetProvider->SetMinLongitudeSegments(PlanetSettings->Resolution);
+
+	// Add noise if it exists
+	if (PlanetSettings->NoiseSettings.Num() != 0)
 	{
-		for (UNoiseLayer* NoiseLayer : Noise)
-		{
-			NoiseLayer->UpdateValues();
-		}
-		PlanetProvider->SetNoise(Noise);
+		PlanetSettings->UpdateNoiseSettings();
+		PlanetProvider->SetNoise(PlanetSettings->NoiseSettings);
 	}
+
+	// Mark provider for reconstruction
 	PlanetProvider->MarkSectionDirty(0, 0);
 }
 

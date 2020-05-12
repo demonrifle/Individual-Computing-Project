@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "RuntimeMeshProvider.h"
+#include "ProceduralPlanetSettings.h"
 #include "NoiseLayer.h"
 
 #include "ProceduralPlanetMeshProvider.generated.h"
@@ -31,6 +32,7 @@ private:
 
 		UMaterialInterface* SphereMaterial;
 
+		UProceduralPlanetSettings* ProceduralPlanetSettings;
 		TArray<UNoiseLayer*> Noise;
 
 public:
@@ -61,6 +63,9 @@ public:
 		TArray<UNoiseLayer*> GetNoise() const;
 		void SetNoise(TArray<UNoiseLayer*> InNoiseLayer);
 
+		UProceduralPlanetSettings* GetProceduralPlanetSettings() const;
+		void SetProceduralPlanetSettings(UProceduralPlanetSettings* InProceduralPlanetSettings);
+
 protected:
 	virtual void Initialize_Implementation() override;
 	virtual bool GetSectionMeshForLOD_Implementation(int32 LODIndex, int32 SectionId, FRuntimeMeshRenderableMeshData& MeshData) override;
@@ -81,7 +86,7 @@ private:
 		LatitudeSegments = FMath::Max(FMath::RoundToInt(MaxLat * FMath::Pow(LODMul, LODIndex)), MinLat);
 		LongitudeSegments = FMath::Max(FMath::RoundToInt(MaxLon * FMath::Pow(LODMul, LODIndex)), MinLon);
 	}
-	static bool GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, TArray<UNoiseLayer*> InNoise);
+	static bool GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, UProceduralPlanetSettings* PlanetSettings);
 	void UpdateMeshParameters(bool bAffectsCollision);
 
 };

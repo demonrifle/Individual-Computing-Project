@@ -25,4 +25,7 @@ public:
 		TArray<UNoiseLayer*> NoiseSettings;
 public:
 	UProceduralPlanetSettings();
+
+	void UpdateNoiseSettings();
+	double GetHeightAt3DPointForAllLayers(DVector Vector);
 };

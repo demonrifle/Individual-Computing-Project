@@ -9,6 +9,7 @@
 #include "UObject/NoExportTypes.h"
 #include "FastNoise.h"
 #include "DVector.h"
+#include "Math/RandomStream.h"
 
 #include "NoiseLayer.generated.h"
 
@@ -24,7 +25,7 @@ enum class UNoiseType : uint8
 	Simplex, 
 	SimplexFractal, 
 	Cellular, 
-	WhiteNoise,
+	WhiteNoise
 };
 
 UENUM()
@@ -116,6 +117,17 @@ public:
 	// Updates the values of the FastNoise object by setting its properties according to the ones from this class
 	virtual void UpdateValues();
 
+	// Gets a randomized noise layer. Type depends on input.
+	// 0 - Value 
+	// 1 - Value Fractal
+	// 2 - Perlin
+	// 3 - Perlin Fractal
+	// 4 - Simplex
+	// 5 - Simplex Fractal
+	// 6 - Cellular
+	// 7 - White
+	static UNoiseLayer* GetRandomNoiseLayer(FRandomStream* Seed);
+
 };
 
 
@@ -160,6 +172,9 @@ public:
 	UValueNoise();
 	void UpdateValues();
 
+	// Gets a randomized Value noise layer.
+	static UValueNoise* GetRandomLayer(FRandomStream* Seed);
+
 };
 
 //Value Fractal Noise
@@ -175,6 +190,10 @@ public:
 
 	UValueFractalNoise();
 	void UpdateValues();
+
+
+	// Gets a randomized Value noise layer.
+	static UValueFractalNoise* GetRandomLayer(FRandomStream* Seed);
 };
 
 //Perlin Noise
@@ -190,15 +209,27 @@ public:
 
 	UPerlinNoise();
 	void UpdateValues();
+
+
+	// Gets a randomized Value noise layer.
+	static UPerlinNoise* GetRandomLayer(FRandomStream* Seed);
 };
 
 //Perlin Fractal Noise
 UCLASS(EditInlineNew)
 class UPerlinFractalNoise : public UFractalNoise {
 	GENERATED_BODY()
-public:
+public:	
+	// The type of applied Interpolation. 
+	// Hermite and Quintic are smoother than Linear
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
+		UNoiseInterp Interpolation;
+
 	UPerlinFractalNoise();
 	void UpdateValues();
+
+	// Gets a randomized Value noise layer.
+	static UPerlinFractalNoise* GetRandomLayer(FRandomStream* Seed);
 };
 
 
@@ -210,6 +241,9 @@ public:
 	USimplexNoise();
 	void UpdateValues();
 
+	// Gets a randomized Value noise layer.
+	static USimplexNoise* GetRandomLayer(FRandomStream* Seed);
+
 };
 
 //Simplex Fractal Noise
@@ -219,6 +253,10 @@ class USimplexFractalNoise : public UFractalNoise {
 public:
 	USimplexFractalNoise();
 	void UpdateValues();
+
+
+	// Gets a randomized Value noise layer.
+	static USimplexFractalNoise* GetRandomLayer(FRandomStream* Seed);
 
 };
 
@@ -242,6 +280,10 @@ public:
 		UNoiseCellularReturnType CellularReturnType;
 	//UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 	//	UNoiseLayer* CellularLookupNoise;
+
+
+	// Gets a randomized Value noise layer.
+	static UCellularNoise* GetRandomLayer(FRandomStream* Seed);
 };
 
 UCLASS(EditInlineNew)
@@ -251,4 +293,7 @@ class UWhiteNoise : public UNoiseLayer
 public:
 	UWhiteNoise();
 	void UpdateValues();
+
+	// Gets a randomized Value noise layer.
+	static UWhiteNoise* GetRandomLayer(FRandomStream* Seed);
 };

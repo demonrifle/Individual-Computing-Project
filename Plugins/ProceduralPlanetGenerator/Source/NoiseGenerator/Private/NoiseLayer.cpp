@@ -2,7 +2,6 @@
 
 
 #include "NoiseLayer.h"
-#include "Engine/Engine.h"
 
 // Abstract Base Class
 UNoiseLayer::UNoiseLayer()
@@ -85,6 +84,23 @@ void UNoiseLayer::UpdateValues()
 	Noise.SetFrequency(Frequency);
 }
 
+UNoiseLayer * UNoiseLayer::GetRandomNoiseLayer(FRandomStream* Seed)
+{
+	int LayerType = Seed->RandRange(0, 7);
+	switch (LayerType)
+	{
+		case 0 :	return UValueNoise::GetRandomLayer(Seed);		
+		case 1 :	return UValueFractalNoise::GetRandomLayer(Seed);
+		case 2 :	return UPerlinNoise::GetRandomLayer(Seed);
+		case 3 :	return UPerlinFractalNoise::GetRandomLayer(Seed);
+		case 4 :	return USimplexNoise::GetRandomLayer(Seed);
+		case 5 :	return USimplexFractalNoise::GetRandomLayer(Seed);
+		case 6 :	return UCellularNoise::GetRandomLayer(Seed);
+		case 7 :	return UWhiteNoise::GetRandomLayer(Seed);
+	}
+	return nullptr;
+}
+
 // Abstract Fractal Base Class
 UFractalNoise::UFractalNoise()
 {
@@ -155,6 +171,37 @@ void UValueNoise::UpdateValues()
 	
 }
 
+UValueNoise* UValueNoise::GetRandomLayer(FRandomStream* Seed)
+{
+	UValueNoise* Layer = NewObject<UValueNoise>();
+	Layer->Seed = Seed->RandRange(0, 20000);
+	Layer->Frequency = Seed->FRandRange(0.02f, 4.0f);
+	Layer->Amplitude = Seed->FRandRange(20.0f, 200.0f);
+	Layer->ElevationReduction = Seed->FRandRange(0.0f, Layer->Amplitude - 20.0f);
+	
+	int LayerInterpolation = Seed->RandRange(0, 2);
+	switch (LayerInterpolation)
+	{
+		case 0 :
+		{
+			Layer->Interpolation = UNoiseInterp::Linear;
+		}
+		case 1 :
+		{
+			Layer->Interpolation = UNoiseInterp::Hermite;
+		}
+		case 2 :
+		{
+			Layer->Interpolation = UNoiseInterp::Quintic;
+		}
+	}
+
+	return Layer;
+}
+
+
+
+
 // Value Fractal Noise
 UValueFractalNoise::UValueFractalNoise() 
 {
@@ -186,6 +233,56 @@ void UValueFractalNoise::UpdateValues()
 	}
 	UFractalNoise::UpdateValues();
 }
+
+UValueFractalNoise * UValueFractalNoise::GetRandomLayer(FRandomStream * Seed)
+{
+	UValueFractalNoise* Layer = NewObject<UValueFractalNoise>();
+	Layer->Seed = Seed->RandRange(0, 20000);
+	Layer->Frequency = Seed->FRandRange(0.02f, 4.0f);
+	Layer->Amplitude = Seed->FRandRange(20.0f, 200.0f);
+	Layer->ElevationReduction = Seed->FRandRange(0.0f, Layer->Amplitude - 20.0f);
+	Layer->Lacunarity = Seed->FRandRange(0.0f, 4.0f);
+	Layer->Gain = Seed->FRandRange(0.0f, 1.0f);
+	Layer->Octaves = Seed->RandRange(1, 9);
+
+	int FractalType = Seed->RandRange(0, 2);
+	switch (FractalType)
+	{
+		case 0:
+		{
+			Layer->FractalType = UNoiseFractalType::FBM;
+		}
+		case 1:
+		{
+			Layer->FractalType = UNoiseFractalType::Billow;
+		}
+		case 2:
+		{
+			Layer->FractalType = UNoiseFractalType::RigidMulti;
+		}
+	}
+
+	int LayerInterpolation = Seed->RandRange(0, 2);
+	switch (LayerInterpolation)
+	{
+		case 0:
+		{
+			Layer->Interpolation = UNoiseInterp::Linear;
+		}
+		case 1:
+		{
+			Layer->Interpolation = UNoiseInterp::Hermite;
+		}
+		case 2:
+		{
+			Layer->Interpolation = UNoiseInterp::Quintic;
+		}
+	}
+
+	return Layer;
+}
+
+
 
 // Perlin Noise
 UPerlinNoise::UPerlinNoise()
@@ -219,17 +316,115 @@ void UPerlinNoise::UpdateValues()
 
 }
 
+UPerlinNoise * UPerlinNoise::GetRandomLayer(FRandomStream * Seed)
+{
+	UPerlinNoise* Layer = NewObject<UPerlinNoise>();
+	Layer->Seed = Seed->RandRange(0, 20000);
+	Layer->Frequency = Seed->FRandRange(0.02f, 4.0f);
+	Layer->Amplitude = Seed->FRandRange(20.0f, 200.0f);
+	Layer->ElevationReduction = Seed->FRandRange(0.0f, Layer->Amplitude - 20.0f);
+
+	int LayerInterpolation = Seed->RandRange(0, 2);
+	switch (LayerInterpolation)
+	{
+	case 0:
+	{
+		Layer->Interpolation = UNoiseInterp::Linear;
+	}
+	case 1:
+	{
+		Layer->Interpolation = UNoiseInterp::Hermite;
+	}
+	case 2:
+	{
+		Layer->Interpolation = UNoiseInterp::Quintic;
+	}
+	}
+
+	return Layer;
+}
+
+
+
+
 // Perln Fractal Noise
 UPerlinFractalNoise::UPerlinFractalNoise()
 {
 	Noise.SetNoiseType(FastNoise::PerlinFractal);
+	Interpolation = UNoiseInterp::Quintic;
 
 	UpdateValues();
 }
 
 void UPerlinFractalNoise::UpdateValues()
 {
+	switch (Interpolation)
+	{
+	case UNoiseInterp::Linear:
+	{
+		Noise.SetInterp(FastNoise::Interp::Linear);
+		break;
+	}
+	case UNoiseInterp::Hermite:
+	{
+		Noise.SetInterp(FastNoise::Interp::Hermite);
+		break;
+	}
+	case UNoiseInterp::Quintic:
+	{
+		Noise.SetInterp(FastNoise::Interp::Quintic);
+		break;
+	}
+	}
 	UFractalNoise::UpdateValues();
+}
+
+UPerlinFractalNoise * UPerlinFractalNoise::GetRandomLayer(FRandomStream * Seed)
+{
+	UPerlinFractalNoise* Layer = NewObject<UPerlinFractalNoise>();
+	Layer->Seed = Seed->RandRange(0, 20000);
+	Layer->Frequency = Seed->FRandRange(0.02f, 4.0f);
+	Layer->Amplitude = Seed->FRandRange(20.0f, 200.0f);
+	Layer->ElevationReduction = Seed->FRandRange(0.0f, Layer->Amplitude - 20.0f);
+	Layer->Lacunarity = Seed->FRandRange(0.0f, 4.0f);
+	Layer->Gain = Seed->FRandRange(0.0f, 1.0f);
+	Layer->Octaves = Seed->RandRange(1, 9);
+
+	int FractalType = Seed->RandRange(0, 2);
+	switch (FractalType)
+	{
+	case 0:
+	{
+		Layer->FractalType = UNoiseFractalType::FBM;
+	}
+	case 1:
+	{
+		Layer->FractalType = UNoiseFractalType::Billow;
+	}
+	case 2:
+	{
+		Layer->FractalType = UNoiseFractalType::RigidMulti;
+	}
+	}
+
+	int LayerInterpolation = Seed->RandRange(0, 2);
+	switch (LayerInterpolation)
+	{
+	case 0:
+	{
+		Layer->Interpolation = UNoiseInterp::Linear;
+	}
+	case 1:
+	{
+		Layer->Interpolation = UNoiseInterp::Hermite;
+	}
+	case 2:
+	{
+		Layer->Interpolation = UNoiseInterp::Quintic;
+	}
+	}
+
+	return Layer;
 }
 
 // Simplex Noise
@@ -243,6 +438,18 @@ void USimplexNoise::UpdateValues() {
 	UNoiseLayer::UpdateValues();
 }
 
+USimplexNoise * USimplexNoise::GetRandomLayer(FRandomStream * Seed)
+{
+	USimplexNoise* Layer = NewObject<USimplexNoise>();
+	Layer->Seed = Seed->RandRange(0, 20000);
+	Layer->Frequency = Seed->FRandRange(0.02f, 4.0f);
+	Layer->Amplitude = Seed->FRandRange(20.0f, 200.0f);
+	Layer->ElevationReduction = Seed->FRandRange(0.0f, Layer->Amplitude - 20.0f);
+
+	return Layer;
+}
+
+
 // Simplex Fractal Noise
 USimplexFractalNoise::USimplexFractalNoise()
 {
@@ -253,6 +460,37 @@ USimplexFractalNoise::USimplexFractalNoise()
 void USimplexFractalNoise::UpdateValues()
 {
 	UFractalNoise::UpdateValues();
+}
+
+USimplexFractalNoise * USimplexFractalNoise::GetRandomLayer(FRandomStream * Seed)
+{
+	USimplexFractalNoise* Layer = NewObject<USimplexFractalNoise>();
+	Layer->Seed = Seed->RandRange(0, 20000);
+	Layer->Frequency = Seed->FRandRange(0.02f, 4.0f);
+	Layer->Amplitude = Seed->FRandRange(20.0f, 200.0f);
+	Layer->ElevationReduction = Seed->FRandRange(0.0f, Layer->Amplitude - 20.0f);
+	Layer->Lacunarity = Seed->FRandRange(0.0f, 4.0f);
+	Layer->Gain = Seed->FRandRange(0.0f, 1.0f);
+	Layer->Octaves = Seed->RandRange(1, 9);
+
+	int FractalType = Seed->RandRange(0, 2);
+	switch (FractalType)
+	{
+	case 0:
+	{
+		Layer->FractalType = UNoiseFractalType::FBM;
+	}
+	case 1:
+	{
+		Layer->FractalType = UNoiseFractalType::Billow;
+	}
+	case 2:
+	{
+		Layer->FractalType = UNoiseFractalType::RigidMulti;
+	}
+	}
+
+	return Layer;
 }
 
 // Cellular Noise
@@ -331,6 +569,68 @@ void UCellularNoise::UpdateValues()
 	UNoiseLayer::UpdateValues();
 }
 
+UCellularNoise * UCellularNoise::GetRandomLayer(FRandomStream * Seed)
+{
+	UCellularNoise* Layer = NewObject<UCellularNoise>();
+	Layer->Seed = Seed->RandRange(0, 20000);
+	Layer->Frequency = Seed->FRandRange(0.02f, 4.0f);
+	Layer->Amplitude = Seed->FRandRange(20.0f, 200.0f);
+	Layer->Jitter = Seed->FRandRange(0.0f, 1.0f);
+	
+	int CellularType = Seed->RandRange(0, 2);
+	switch (CellularType)
+	{
+	case 0:
+	{
+		Layer->CellularType = UNoiseCellularType::Euclidean;
+	}
+	case 1:
+	{
+		Layer->CellularType = UNoiseCellularType::Manhattan;
+	}
+	case 2:
+	{
+		Layer->CellularType = UNoiseCellularType::Natural;
+	}
+	}
+
+	int CellularReturnType = Seed->RandRange(0, 6);
+	switch (CellularReturnType)
+	{
+	case 0:
+	{
+		Layer->CellularReturnType = UNoiseCellularReturnType::CellValue;
+	}
+	case 1:
+	{
+		Layer->CellularReturnType = UNoiseCellularReturnType::Distance;
+	}
+	case 2:
+	{
+		Layer->CellularReturnType = UNoiseCellularReturnType::Distance2;
+	}
+	case 3:
+	{
+		Layer->CellularReturnType = UNoiseCellularReturnType::Distance2Add;
+	}
+	case 4:
+	{
+		Layer->CellularReturnType = UNoiseCellularReturnType::Distance2Div;
+	}
+	case 5:
+	{
+		Layer->CellularReturnType = UNoiseCellularReturnType::Distance2Mul;
+	}
+	case 6:
+	{
+		Layer->CellularReturnType = UNoiseCellularReturnType::Distance2Sub;
+	}
+	}
+
+	return Layer;
+}
+
+// White Noise
 UWhiteNoise::UWhiteNoise()
 {
 	Noise.SetNoiseType(FastNoise::NoiseType::WhiteNoise);
@@ -339,6 +639,16 @@ UWhiteNoise::UWhiteNoise()
 void UWhiteNoise::UpdateValues()
 {
 	UNoiseLayer::UpdateValues();
+}
+
+UWhiteNoise * UWhiteNoise::GetRandomLayer(FRandomStream * Seed)
+{
+	UWhiteNoise* Layer = NewObject<UWhiteNoise>();
+	Layer->Seed = Seed->RandRange(0, 20000);
+	Layer->Frequency = Seed->FRandRange(0.02f, 4.0f);
+	Layer->Amplitude = Seed->FRandRange(20.0f, 200.0f);
+
+	return Layer;
 }
 
 

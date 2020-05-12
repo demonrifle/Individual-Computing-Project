@@ -7,7 +7,6 @@
 
 AProceduralPlanetActor::AProceduralPlanetActor()
 {
-	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AProceduralPlanetActor::BeginPlay()
@@ -18,6 +17,9 @@ void AProceduralPlanetActor::BeginPlay()
 
 void AProceduralPlanetActor::Initialize(bool IsRandom)
 {
+	// Sets whether or not Tick event will affect this actor
+	PrimaryActorTick.bCanEverTick = true;
+
 	// Initialize settings object
 	PlanetSettings = NewObject<UProceduralPlanetSettings>(this, TEXT("PlanetSettings"));
 
@@ -27,15 +29,33 @@ void AProceduralPlanetActor::Initialize(bool IsRandom)
 
 	if (IsRandom)
 	{
+		PlanetSettings->Initialize(IsRandom);
+		PlanetSettings->UpdateNoiseSettings();
+
+		PlanetProvider->SetProceduralPlanetSettings(PlanetSettings);
+		PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
+		PlanetProvider->SetMaxLatitudeSegments(PlanetSettings->Resolution);
+		PlanetProvider->SetMinLatitudeSegments(PlanetSettings->Resolution);
+		PlanetProvider->SetMaxLongitudeSegments(PlanetSettings->Resolution);
+		PlanetProvider->SetMinLongitudeSegments(PlanetSettings->Resolution);
 
 	}
 	else
 	{
+		PlanetSettings->Initialize(IsRandom);
+		PlanetSettings->UpdateNoiseSettings();
 
+		PlanetProvider->SetProceduralPlanetSettings(PlanetSettings);
+		PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
+		PlanetProvider->SetMaxLatitudeSegments(PlanetSettings->Resolution);
+		PlanetProvider->SetMinLatitudeSegments(PlanetSettings->Resolution);
+		PlanetProvider->SetMaxLongitudeSegments(PlanetSettings->Resolution);
+		PlanetProvider->SetMinLongitudeSegments(PlanetSettings->Resolution);
 	}
 
 	// Initialize provider and starts the chain calls internally in the RMC to generate the mesh
 	GetRuntimeMeshComponent()->Initialize(PlanetProvider);
+
 }
 
 void AProceduralPlanetActor::Tick(float DeltaTime)
@@ -49,7 +69,7 @@ void AProceduralPlanetActor::OnConstruction(const FTransform & Transform)
 	Super::OnConstruction(Transform);
 
 	// If 
-	if (!PlanetProvider)
+	if (!PlanetProvider || !PlanetSettings)
 	{
 		GenerateSphere();
 	}

@@ -21,6 +21,7 @@ class PROCEDURALPLANETGENERATOR_API AProceduralPlanetActor : public ARuntimeMesh
 
 public:
 
+
 	UPROPERTY(VisibleAnywhere, Instanced, Category = "Planet Settings")
 		UProceduralPlanetSettings* PlanetSettings;
 

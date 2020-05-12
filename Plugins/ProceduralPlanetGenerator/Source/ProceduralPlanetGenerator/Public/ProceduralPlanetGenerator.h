@@ -16,13 +16,16 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	
-	/** This function will be bound to Command. */
-	void PluginButtonClicked();
+	/** These functions will be bound to Command. */
+	void SpawnBlankPlanet();
+	void SpawnRandomPlanet();
 	
 private:
 
 	void AddToolbarExtension(FToolBarBuilder& Builder);
 	void AddMenuExtension(FMenuBuilder& Builder);
+
+
 
 private:
 	TSharedPtr<class FUICommandList> PluginCommands;

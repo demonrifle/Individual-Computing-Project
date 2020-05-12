@@ -5,9 +5,41 @@
 
 UProceduralPlanetSettings::UProceduralPlanetSettings()
 {
-	Radius = 200.0f;
-	Resolution = 50;
-	NoiseSettings.Add(CreateDefaultSubobject<UNoiseLayer>(TEXT("Noise Layers")));
+
+}
+
+void UProceduralPlanetSettings::Initialize(bool IsRandom)
+{
+
+	if (IsRandom)
+	{
+		// Initialize the global seed for this planet
+		Seed = FRandomStream();
+		Seed.GenerateNewSeed();
+
+		Radius = Seed.FRandRange(200.0f, 500.0f);
+		Resolution = Seed.RandRange(100, 1000);
+
+		// Add random layers of noise
+		int NoiseLayers = Seed.RandRange(1, 3);
+
+		for (int i = 0; i < NoiseLayers; i++)
+		{
+			NoiseSettings.Add(UNoiseLayer::GetRandomNoiseLayer(&Seed));
+		}
+
+	}
+	else
+	{	// Initialize the global seed for this planet
+		Seed = FRandomStream(1337);
+
+		// Set defaults
+		Radius = 200.0f;
+		Resolution = 50;
+
+		// One default uninitialized noise layer
+		NoiseSettings.Add(NewObject<UNoiseLayer>(this, TEXT("Noise Layers")));
+	}
 }
 
 void UProceduralPlanetSettings::UpdateNoiseSettings()

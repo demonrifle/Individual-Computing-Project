@@ -6,7 +6,8 @@
 
 void FProceduralPlanetGeneratorCommands::RegisterCommands()
 {
-	UI_COMMAND(PluginAction, "ProceduralPlanetGenerator", "Execute ProceduralPlanetGenerator action", EUserInterfaceActionType::Button, FInputGesture());
+	UI_COMMAND(SpawnBlankPlanet, "Spawn Blank Planet", "Spawns a blank planet to edit", EUserInterfaceActionType::Button, FInputGesture());
+	UI_COMMAND(SpawnRandomPlanet, "Spawn Random Planet", "Spawns a randomized planet to use or edit", EUserInterfaceActionType::Button, FInputGesture());
 }
 
 #undef LOCTEXT_NAMESPACE

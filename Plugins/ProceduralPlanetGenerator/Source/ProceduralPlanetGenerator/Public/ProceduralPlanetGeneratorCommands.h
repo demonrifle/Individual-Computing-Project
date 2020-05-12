@@ -11,7 +11,11 @@ class FProceduralPlanetGeneratorCommands : public TCommands<FProceduralPlanetGen
 public:
 
 	FProceduralPlanetGeneratorCommands()
-		: TCommands<FProceduralPlanetGeneratorCommands>(TEXT("ProceduralPlanetGenerator"), NSLOCTEXT("Contexts", "ProceduralPlanetGenerator", "ProceduralPlanetGenerator Plugin"), NAME_None, FProceduralPlanetGeneratorStyle::GetStyleSetName())
+		: TCommands<FProceduralPlanetGeneratorCommands>(
+			TEXT("ProceduralPlanetGenerator"),
+			NSLOCTEXT("Contexts", "ProceduralPlanetGenerator", "ProceduralPlanetGenerator Plugin"),
+			NAME_None, 
+			FProceduralPlanetGeneratorStyle::GetStyleSetName())
 	{
 	}
 
@@ -19,5 +23,6 @@ public:
 	virtual void RegisterCommands() override;
 
 public:
-	TSharedPtr< FUICommandInfo > PluginAction;
+	TSharedPtr< FUICommandInfo > SpawnBlankPlanet;
+	TSharedPtr< FUICommandInfo > SpawnRandomPlanet;
 };

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Project belongs to Nikolay Nikolov for the purposes of a final-year university project/dissertation. 2020 All rights reserved.
 
 
 #include "ProceduralPlanetMeshProvider.h"
@@ -326,7 +326,10 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Lati
 					Position *= (SphereRadius + NoiseValue);
 				}
 			}
-			else Position *= SphereRadius;
+			else
+			{
+				Position *= SphereRadius;
+			}
 
 			MeshData.Positions.Add(Position);
 			MeshData.Tangents.Add(Normal, TangentVerts[LatitudeIndex]);

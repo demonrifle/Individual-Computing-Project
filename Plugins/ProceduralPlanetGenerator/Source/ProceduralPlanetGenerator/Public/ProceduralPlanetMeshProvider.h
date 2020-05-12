@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Project belongs to Nikolay Nikolov for the purposes of a final-year university project/dissertation. 2020 All rights reserved.
 
 #pragma once
 
@@ -10,6 +10,9 @@
 #include "ProceduralPlanetMeshProvider.generated.h"
 
 
+// This class extends the RMC provider behaviour to build the mesh for a procedural planet
+// Most of this is copied from the RuntimeMeshProviderSphere with added functionality for noise
+// TODO : At a later stage should be refactored to only require a ProceduralPlanetSettings object/pointer since radius/segments etc can already be found there
 UCLASS()
 class PROCEDURALPLANETGENERATOR_API UProceduralPlanetMeshProvider : public URuntimeMeshProvider
 {

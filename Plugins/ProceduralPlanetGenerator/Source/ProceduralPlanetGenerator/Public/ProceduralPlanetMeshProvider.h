@@ -25,18 +25,15 @@ private:
 
 		float SphereRadius;
 
-		int32 MaxLatitudeSegments;
-		int32 MinLatitudeSegments;
+		int32 MaxSegments;
+		int32 MinSegments;
 
-		int32 MaxLongitudeSegments;
-		int32 MinLongitudeSegments;
 
 		float LODMultiplier;
 
 		UMaterialInterface* SphereMaterial;
 
 		UProceduralPlanetSettings* ProceduralPlanetSettings;
-		TArray<UNoiseLayer*> Noise;
 
 public:
 
@@ -45,26 +42,17 @@ public:
 		float GetSphereRadius() const;
 		void SetSphereRadius(float InSphereRadius);
 
-		int32 GetMaxLatitudeSegments() const;
-		void SetMaxLatitudeSegments(int32 InMaxLatitudeSegments);
+		int32 GetMaxSegments() const;
+		void SetMaxSegments(int32 InMaxSegments);
 
-		int32 GetMinLatitudeSegments() const;
-		void SetMinLatitudeSegments(int32 InMinLatitudeSegments);
-
-		int32 GetMaxLongitudeSegments() const;
-		void SetMaxLongitudeSegments(int32 InMaxLongitudeSegments);
-
-		int32 GetMinLongitudeSegments() const;
-		void SetMinLongitudeSegments(int32 InMinLongitudeSegments);
+		int32 GetMinSegments() const;
+		void SetMinSegments(int32 InMinSegments);
 
 		float GetLODMultiplier() const;
 		void SetLODMultiplier(float InLODMultiplier);
 
 		UMaterialInterface* GetSphereMaterial() const;
 		void SetSphereMaterial(UMaterialInterface* InSphereMaterial);
-
-		TArray<UNoiseLayer*> GetNoise() const;
-		void SetNoise(TArray<UNoiseLayer*> InNoiseLayer);
 
 		UProceduralPlanetSettings* GetProceduralPlanetSettings() const;
 		void SetProceduralPlanetSettings(UProceduralPlanetSettings* InProceduralPlanetSettings);
@@ -78,18 +66,17 @@ protected:
 
 
 private:
-	void GetShapeParams(float& OutRadius, int32& OutMinLatitudeSegments, int32& OutMaxLatitudeSegments, int32& OutMinLongitudeSegments, int32& OutMaxLongitudeSegments, float& OutLODMultiplier);
+	void GetShapeParams(float& OutRadius, int32& OutMinSegments, int32& OutMaxSegments, float& OutLODMultiplier);
 	int32 GetMaxNumberOfLODs();
 	float CalculateScreenSize(int32 LODIndex);
-	void GetSegmentsForLOD(int32& LODIndex, int32& LatitudeSegments, int32& LongitudeSegments)
+	void GetSegmentsForLOD(int32& LODIndex, int32& Segments)
 	{
-		GetSegmentsForLOD(LODIndex, LODMultiplier, MaxLatitudeSegments, MinLatitudeSegments, MaxLongitudeSegments, MinLongitudeSegments, LatitudeSegments, LongitudeSegments);
+		GetSegmentsForLOD(LODIndex, LODMultiplier, MaxSegments, MinSegments, Segments);
 	}
-	static void GetSegmentsForLOD(int32& LODIndex, float& LODMul, int32& MaxLat, int32& MinLat, int32& MaxLon, int32& MinLon, int32& LatitudeSegments, int32& LongitudeSegments) {
-		LatitudeSegments = FMath::Max(FMath::RoundToInt(MaxLat * FMath::Pow(LODMul, LODIndex)), MinLat);
-		LongitudeSegments = FMath::Max(FMath::RoundToInt(MaxLon * FMath::Pow(LODMul, LODIndex)), MinLon);
+	static void GetSegmentsForLOD(int32& LODIndex, float& LODMul, int32& MaxSegments, int32& MinSegments,  int32& Segments) {
+		Segments = FMath::Max(FMath::RoundToInt(MaxSegments * FMath::Pow(LODMul, LODIndex)), MinSegments);
 	}
-	static bool GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, UProceduralPlanetSettings* PlanetSettings);
+	static bool GetSphereMesh(int32 SphereRadius, int32 Segments, FRuntimeMeshRenderableMeshData& MeshData, UProceduralPlanetSettings* PlanetSettings);
 	void UpdateMeshParameters(bool bAffectsCollision);
 
 };

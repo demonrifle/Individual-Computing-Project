@@ -20,40 +20,24 @@ void AProceduralPlanetActor::Initialize(bool IsRandom)
 	// Sets whether or not Tick event will affect this actor
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Initialize settings object
+	// Declare settings object
 	PlanetSettings = NewObject<UProceduralPlanetSettings>(this, TEXT("PlanetSettings"));
 
-	// Initialize RMC custom provider
+	// Declare RMC custom provider
 	PlanetProvider = NewObject<UProceduralPlanetMeshProvider>(this, TEXT("RuntimeMeshprovider-Planet"));
 
+	// Initialize variables, if IsRandom values will be randomized
+	PlanetSettings->Initialize(IsRandom);
+	PlanetSettings->UpdateNoiseSettings();
 
-	if (IsRandom)
-	{
-		PlanetSettings->Initialize(IsRandom);
-		PlanetSettings->UpdateNoiseSettings();
+	PlanetProvider->SetProceduralPlanetSettings(PlanetSettings);
+	PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
+	
+	PlanetProvider->SetMaxSegments(PlanetSettings->Resolution);
+	PlanetProvider->SetMinSegments(PlanetSettings->Resolution);
+	
 
-		PlanetProvider->SetProceduralPlanetSettings(PlanetSettings);
-		PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
-		PlanetProvider->SetMaxLatitudeSegments(PlanetSettings->Resolution);
-		PlanetProvider->SetMinLatitudeSegments(PlanetSettings->Resolution);
-		PlanetProvider->SetMaxLongitudeSegments(PlanetSettings->Resolution);
-		PlanetProvider->SetMinLongitudeSegments(PlanetSettings->Resolution);
-
-	}
-	else
-	{
-		PlanetSettings->Initialize(IsRandom);
-		PlanetSettings->UpdateNoiseSettings();
-
-		PlanetProvider->SetProceduralPlanetSettings(PlanetSettings);
-		PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
-		PlanetProvider->SetMaxLatitudeSegments(PlanetSettings->Resolution);
-		PlanetProvider->SetMinLatitudeSegments(PlanetSettings->Resolution);
-		PlanetProvider->SetMaxLongitudeSegments(PlanetSettings->Resolution);
-		PlanetProvider->SetMinLongitudeSegments(PlanetSettings->Resolution);
-	}
-
-	// Initialize provider and starts the chain calls internally in the RMC to generate the mesh
+	// Initialize provider and start the chain call internally in the RMC to generate the mesh
 	GetRuntimeMeshComponent()->Initialize(PlanetProvider);
 
 }
@@ -68,46 +52,53 @@ void AProceduralPlanetActor::OnConstruction(const FTransform & Transform)
 	// Call parent function
 	Super::OnConstruction(Transform);
 
-	// If 
-	if (!PlanetProvider || !PlanetSettings)
-	{
-		GenerateSphere();
-	}
-	else
+	// Validate 
+	// Check settings and provider are initialized
+	if (PlanetProvider && PlanetSettings)
 	{
 		UpdateSphere();
+	}
+	// Else initialize blank planet
+	else
+	{
+		Initialize(false);
 	}
 
 }
 
 void AProceduralPlanetActor::GenerateSphere()
 {
-	PlanetProvider = NewObject<UProceduralPlanetMeshProvider>(this, TEXT("RuntimeMeshprovider-Planet"));
+	// Validate all objects before creating new to ensure no memory loss
+	if (!PlanetProvider)
 	PlanetSettings = NewObject<UProceduralPlanetSettings>(this, TEXT("PlanetSettings"));
 
-	PlanetProvider->SetProceduralPlanetSettings(PlanetSettings);
-	PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
-	PlanetProvider->SetMaxLatitudeSegments(PlanetSettings->Resolution);
-	PlanetProvider->SetMinLatitudeSegments(PlanetSettings->Resolution);
-	PlanetProvider->SetMaxLongitudeSegments(PlanetSettings->Resolution);
-	PlanetProvider->SetMinLongitudeSegments(PlanetSettings->Resolution);
-
-	if (PlanetSettings->NoiseSettings.Num() != 0)
+	if (!PlanetSettings)
 	{
-		PlanetSettings->UpdateNoiseSettings();
+		PlanetProvider = NewObject<UProceduralPlanetMeshProvider>(this, TEXT("RuntimeMeshprovider-Planet"));
+
+		PlanetProvider->SetProceduralPlanetSettings(PlanetSettings);
+		PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
+		PlanetProvider->SetMaxSegments(PlanetSettings->Resolution);
+		PlanetProvider->SetMinSegments(PlanetSettings->Resolution);
+
+		if (PlanetSettings->NoiseSettings.Num() != 0)
+		{
+			PlanetSettings->UpdateNoiseSettings();
+		}
+
+		GetRuntimeMeshComponent()->Initialize(PlanetProvider);
 	}
 
-	GetRuntimeMeshComponent()->Initialize(PlanetProvider);
 }
 
+// This method should only be called when both provider and settings are initialized
 void AProceduralPlanetActor::UpdateSphere()
 {
+	
 	// Update it
 	PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
-	PlanetProvider->SetMaxLatitudeSegments(PlanetSettings->Resolution);
-	PlanetProvider->SetMinLatitudeSegments(PlanetSettings->Resolution);
-	PlanetProvider->SetMaxLongitudeSegments(PlanetSettings->Resolution);
-	PlanetProvider->SetMinLongitudeSegments(PlanetSettings->Resolution);
+	PlanetProvider->SetMaxSegments(PlanetSettings->Resolution);
+	PlanetProvider->SetMinSegments(PlanetSettings->Resolution);
 
 	// Update noise if it exists
 	if (PlanetSettings->NoiseSettings.Num() != 0)

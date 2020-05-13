@@ -5,7 +5,7 @@
 
 UProceduralPlanetSettings::UProceduralPlanetSettings()
 {
-
+	Initialize(false);
 }
 
 void UProceduralPlanetSettings::Initialize(bool IsRandom)
@@ -18,7 +18,7 @@ void UProceduralPlanetSettings::Initialize(bool IsRandom)
 		Seed.GenerateNewSeed();
 
 		Radius = Seed.FRandRange(200.0f, 500.0f);
-		Resolution = Seed.RandRange(100, 1000);
+		Resolution = Seed.RandRange(100, 300);
 
 		// Add random layers of noise
 		int NoiseLayers = Seed.RandRange(1, 3);

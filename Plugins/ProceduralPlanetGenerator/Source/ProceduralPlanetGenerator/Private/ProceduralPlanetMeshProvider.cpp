@@ -8,12 +8,11 @@
 UProceduralPlanetMeshProvider::UProceduralPlanetMeshProvider()
 	: MaxLOD(0)
 		, SphereRadius(100.0f)
-		, MaxLatitudeSegments(32)
-		, MinLatitudeSegments(8)
-		, MaxLongitudeSegments(16)
-		, MinLongitudeSegments(5)
-		, LODMultiplier(0.75)
+		, MaxSegments(32)
+		, MinSegments(8)
+		, LODMultiplier(0.50)
 		, SphereMaterial(nullptr)
+		, ProceduralPlanetSettings(nullptr)
 {
 	MaxLOD = GetMaxNumberOfLODs() - 1;
 }
@@ -31,55 +30,29 @@ void UProceduralPlanetMeshProvider::SetSphereRadius(float InSphereRadius)
 	UpdateMeshParameters(true);
 }
 
-int32 UProceduralPlanetMeshProvider::GetMaxLatitudeSegments() const
+int32 UProceduralPlanetMeshProvider::GetMaxSegments() const
 {
 	FScopeLock Lock(&PropertySyncRoot);
-	return MaxLatitudeSegments;
+	return MaxSegments;
 }
 
-void UProceduralPlanetMeshProvider::SetMaxLatitudeSegments(int32 InMaxLatitudeSegments)
+void UProceduralPlanetMeshProvider::SetMaxSegments(int32 InMaxSegments)
 {
 	FScopeLock Lock(&PropertySyncRoot);
-	MaxLatitudeSegments = InMaxLatitudeSegments;
+	MaxSegments = InMaxSegments;
 	UpdateMeshParameters(false);
 }
 
-int32 UProceduralPlanetMeshProvider::GetMinLatitudeSegments() const
+int32 UProceduralPlanetMeshProvider::GetMinSegments() const
 {
 	FScopeLock Lock(&PropertySyncRoot);
-	return MinLatitudeSegments;
+	return MinSegments;
 }
 
-void UProceduralPlanetMeshProvider::SetMinLatitudeSegments(int32 InMinLatitudeSegments)
+void UProceduralPlanetMeshProvider::SetMinSegments(int32 InMinSegments)
 {
 	FScopeLock Lock(&PropertySyncRoot);
-	MinLatitudeSegments = InMinLatitudeSegments;
-	UpdateMeshParameters(false);
-}
-
-int32 UProceduralPlanetMeshProvider::GetMaxLongitudeSegments() const
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	return MaxLongitudeSegments;
-}
-
-void UProceduralPlanetMeshProvider::SetMaxLongitudeSegments(int32 InMaxLongitudeSegments)
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	MaxLongitudeSegments = InMaxLongitudeSegments;
-	UpdateMeshParameters(false);
-}
-
-int32 UProceduralPlanetMeshProvider::GetMinLongitudeSegments() const
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	return MinLongitudeSegments;
-}
-
-void UProceduralPlanetMeshProvider::SetMinLongitudeSegments(int32 InMinLongitudeSegments)
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	MinLongitudeSegments = InMinLongitudeSegments;
+	MinSegments = InMinSegments;
 	UpdateMeshParameters(false);
 }
 
@@ -115,20 +88,6 @@ void UProceduralPlanetMeshProvider::SetSphereMaterial(UMaterialInterface* InSphe
 	SphereMaterial = InSphereMaterial;
 	//Re-setup the material again
 	this->SetupMaterialSlot(0, FName("Sphere Base"), SphereMaterial);
-}
-
-TArray<UNoiseLayer*> UProceduralPlanetMeshProvider::GetNoise() const
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	return Noise;
-}
-
-void UProceduralPlanetMeshProvider::SetNoise(TArray<UNoiseLayer*> InNoiseLayer)
-{
-	FScopeLock Lock(&PropertySyncRoot);
-
-	Noise = InNoiseLayer;
-	UpdateMeshParameters(true);
 }
 
 UProceduralPlanetSettings * UProceduralPlanetMeshProvider::GetProceduralPlanetSettings() const
@@ -185,19 +144,18 @@ bool UProceduralPlanetMeshProvider::GetSectionMeshForLOD_Implementation(int32 LO
 
 	// Temporary variables declaration
 	float TempRadius;
-	int32 TempMinLat, TempMaxLat;
-	int32 TempMinLong, TempMaxLong;
+	int32 TempMin, TempMax;
 	float TempLODMultiplier;
 
 	// Set temp variables
-	GetShapeParams(TempRadius, TempMinLat, TempMaxLat, TempMinLong, TempMaxLong, TempLODMultiplier);
+	GetShapeParams(TempRadius, TempMin, TempMax, TempLODMultiplier);
 
 	// Set segements for LOD
-	int32 LatSegments, LonSegments;
-	GetSegmentsForLOD(LODIndex, TempLODMultiplier, TempMaxLat, TempMinLat, TempMaxLong, TempMinLong, LatSegments, LonSegments);
+	int32 Segments;
+	GetSegmentsForLOD(LODIndex, TempLODMultiplier, TempMax, TempMin, Segments);
 
 	// Build up Section Mesh 
-	return GetSphereMesh(TempRadius, LatSegments, LonSegments, MeshData, ProceduralPlanetSettings);
+	return GetSphereMesh(TempRadius, Segments,  MeshData, ProceduralPlanetSettings);
 }
 
 FRuntimeMeshCollisionSettings UProceduralPlanetMeshProvider::GetCollisionSettings_Implementation()
@@ -223,14 +181,12 @@ bool UProceduralPlanetMeshProvider::IsThreadSafe_Implementation()
 }
 
 //Threadsafe getter
-void UProceduralPlanetMeshProvider::GetShapeParams(float& OutRadius, int32& OutMinLatitudeSegments, int32& OutMaxLatitudeSegments, int32& OutMinLongitudeSegments, int32& OutMaxLongitudeSegments, float& OutLODMultiplier)
+void UProceduralPlanetMeshProvider::GetShapeParams(float& OutRadius, int32& OutMinSegments, int32& OutMaxSegments, float& OutLODMultiplier)
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	OutRadius = SphereRadius;
-	OutMinLatitudeSegments = MinLatitudeSegments;
-	OutMaxLatitudeSegments = MaxLatitudeSegments;
-	OutMinLongitudeSegments = MinLongitudeSegments;
-	OutMaxLongitudeSegments = MaxLongitudeSegments;
+	OutMinSegments = MinSegments;
+	OutMaxSegments = MaxSegments;
 	OutLODMultiplier = LODMultiplier;
 }
 
@@ -243,19 +199,17 @@ int32 UProceduralPlanetMeshProvider::GetMaxNumberOfLODs()
 {
 	FScopeLock Lock(&PropertySyncRoot);
 	int32 MaxLODs = 1;
-	float CurrentLatitudeSegments = MaxLatitudeSegments;
-	float CurrentLongitudeSegments = MaxLongitudeSegments;
+	float CurrentSegments = MaxSegments;
 
 	// Up to MaxLODs - 8
 	while (MaxLODs < RUNTIMEMESH_MAXLODS)
 	{
 		// Multiply current segments by the LODMultiplier to get segments at next stage
-		CurrentLatitudeSegments *= LODMultiplier;
-		CurrentLongitudeSegments *= LODMultiplier;
+		CurrentSegments *= LODMultiplier;
 
 		// Have we gone far enough?
 		// If lower than the minimum segments possible - stop
-		if (CurrentLatitudeSegments <= MinLatitudeSegments && CurrentLongitudeSegments <= MinLongitudeSegments)
+		if (CurrentSegments <= MinSegments)
 		{
 			MaxLODs++;
 			break;
@@ -268,7 +222,7 @@ int32 UProceduralPlanetMeshProvider::GetMaxNumberOfLODs()
 	return MaxLODs;
 }
 
-//Calculate screen size that object should be before it's rendered
+//Calculate screen size(%) that object should be before it's rendered
 float UProceduralPlanetMeshProvider::CalculateScreenSize(int32 LODIndex)
 {
 	FScopeLock Lock(&PropertySyncRoot);
@@ -278,19 +232,19 @@ float UProceduralPlanetMeshProvider::CalculateScreenSize(int32 LODIndex)
 }
 
 // Calculate actual Mesh data.
-bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 LatitudeSegments, int32 LongitudeSegments, FRuntimeMeshRenderableMeshData& MeshData, UProceduralPlanetSettings* PlanetSettings)
+bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Segments, FRuntimeMeshRenderableMeshData& MeshData, UProceduralPlanetSettings* PlanetSettings)
 {
 	TArray<FVector> LatitudeVerts;
 	TArray<FVector> TangentVerts;
-	int32 TrisOrder[6] = { 0, 1, LatitudeSegments + 1, 1, LatitudeSegments + 2, LatitudeSegments + 1 };
+	int32 TrisOrder[6] = { 0, 1, Segments + 1, 1, Segments + 2, Segments + 1 };
 	//Baked trigonometric data to avoid computing it too much (sin and cos are expensive !)
 	//Set array size
-	LatitudeVerts.SetNumUninitialized(LatitudeSegments + 1);
-	TangentVerts.SetNumUninitialized(LatitudeSegments + 1);
+	LatitudeVerts.SetNumUninitialized(Segments + 1);
+	TangentVerts.SetNumUninitialized(Segments + 1);
 	//For each latitude segment + 1 due to poles
-	for (int32 LatitudeIndex = 0; LatitudeIndex < LatitudeSegments + 1; LatitudeIndex++)
+	for (int32 LatitudeIndex = 0; LatitudeIndex < Segments + 1; LatitudeIndex++)
 	{
-		float angle = LatitudeIndex * 2.f * PI / LatitudeSegments;
+		float angle = LatitudeIndex * 2.f * PI / Segments;
 		float x, y;
 		FMath::SinCos(&y, &x, angle);
 		LatitudeVerts[LatitudeIndex] = FVector(x, y, 0);
@@ -298,12 +252,12 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Lati
 		TangentVerts[LatitudeIndex] = FVector(x, y, 0);
 	}
 	//Making the verts
-	for (int32 LongitudeIndex = 0; LongitudeIndex < LongitudeSegments + 1; LongitudeIndex++) //This is one more vert than geometrically needed but this avoid having to make wrap-around code
+	for (int32 LongitudeIndex = 0; LongitudeIndex < Segments + 1; LongitudeIndex++) //This is one more vert than geometrically needed but this avoid having to make wrap-around code
 	{
-		float angle = LongitudeIndex * PI / LongitudeSegments;
+		float angle = LongitudeIndex * PI / Segments;
 		float z, r;
 		FMath::SinCos(&r, &z, angle);
-		for (int32 LatitudeIndex = 0; LatitudeIndex < LatitudeSegments + 1; LatitudeIndex++) //In total, we only waste (2*LatitudeSegments + LongitudeSegments - 2) vertices but save LatitudeSegments*LongitudeSegments operations
+		for (int32 LatitudeIndex = 0; LatitudeIndex < Segments + 1; LatitudeIndex++) //In total, we only waste (2*Segments + Segments - 2) vertices but save Segments*Segments operations
 		{
 			FVector Normal = LatitudeVerts[LatitudeIndex] * r + FVector(0, 0, z);
 			FVector Position = Normal;
@@ -313,16 +267,9 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Lati
 			{
 				if (PlanetSettings->NoiseSettings.Num() != 0)
 				{
-					double NoiseValue = 0.f;
 					DVector Vector = DVector(Position);
-					for (UNoiseLayer* NoiseLayer : PlanetSettings->NoiseSettings)
-					{
-						// Validate Noise Layer
-						if (NoiseLayer)
-						{
-							NoiseValue += NoiseLayer->GetHeightAt3DPoint(Vector);
-						}
-					}
+					double NoiseValue = PlanetSettings->GetHeightAt3DPointForAllLayers(Vector);
+
 					Position *= (SphereRadius + NoiseValue);
 				}
 			}
@@ -333,16 +280,16 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Lati
 
 			MeshData.Positions.Add(Position);
 			MeshData.Tangents.Add(Normal, TangentVerts[LatitudeIndex]);
-			MeshData.TexCoords.Add(FVector2D((float)LatitudeIndex / LatitudeSegments, (float)LongitudeIndex / LongitudeSegments));
+			MeshData.TexCoords.Add(FVector2D((float)LatitudeIndex / Segments, (float)LongitudeIndex / Segments));
 			MeshData.Colors.Add(FColor::White);
 		}
 	}
 	//Creating the tris
-	for (int32 LongitudeIndex = 0; LongitudeIndex < LongitudeSegments; LongitudeIndex++)
+	for (int32 LongitudeIndex = 0; LongitudeIndex < Segments; LongitudeIndex++)
 	{
-		for (int32 LatitudeIndex = 0; LatitudeIndex < LatitudeSegments; LatitudeIndex++)
+		for (int32 LatitudeIndex = 0; LatitudeIndex < Segments; LatitudeIndex++)
 		{
-			int32 TrisNumber = LatitudeIndex + LongitudeIndex * (LatitudeSegments + 1);
+			int32 TrisNumber = LatitudeIndex + LongitudeIndex * (Segments + 1);
 			for (int32 TrisIndex = 0; TrisIndex < 6; TrisIndex++)
 			{
 				MeshData.Triangles.Add(TrisOrder[TrisIndex] + TrisNumber);

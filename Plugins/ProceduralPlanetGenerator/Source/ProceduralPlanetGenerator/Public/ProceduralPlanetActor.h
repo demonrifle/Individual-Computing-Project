@@ -22,7 +22,7 @@ class PROCEDURALPLANETGENERATOR_API AProceduralPlanetActor : public ARuntimeMesh
 public:
 
 
-	UPROPERTY(VisibleAnywhere, Instanced, Category = "Planet Settings")
+	UPROPERTY(VisibleAnywhere, Category = "Planet Settings")
 		UProceduralPlanetSettings* PlanetSettings;
 
 	UProceduralPlanetMeshProvider* PlanetProvider;
@@ -51,7 +51,7 @@ public:
 	void UpdateSphere();
 
 	
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent) override;
-#endif
+//#if WITH_EDITOR
+//	virtual void PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent) override;
+//#endif
 };

@@ -12,6 +12,17 @@ AProceduralPlanetActor::AProceduralPlanetActor()
 void AProceduralPlanetActor::BeginPlay()
 {
 	Super::BeginPlay();
+	// Validate 
+	// Check settings and provider are initialized
+	if (PlanetProvider && PlanetSettings)
+	{
+		UpdateSphere();
+	}
+	// Else initialize blank planet
+	else
+	{
+		Initialize(false);
+	}
 }
 
 
@@ -21,7 +32,7 @@ void AProceduralPlanetActor::Initialize(bool IsRandom)
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Declare settings object
-	PlanetSettings = NewObject<UProceduralPlanetSettings>(this, TEXT("PlanetSettings"));
+	PlanetSettings = NewObject<UProceduralPlanetSettings>(this, TEXT("ProceduralPlanetSettings"));
 	// Initialize variables, if IsRandom values will be randomized
 	PlanetSettings->Initialize(IsRandom);
 	PlanetSettings->UpdateNoiseSettings();
@@ -71,20 +82,18 @@ void AProceduralPlanetActor::UpdateSphere()
 	PlanetProvider->MarkSectionDirty(0, 0);
 }
 
-#if WITH_EDITOR
-void AProceduralPlanetActor::PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent)
-{
-	if (PropertyChangedEvent.Property != nullptr)
-	{
-		if (PropertyChangedEvent.Property->GetFName() == FName("Radius") ||
-			PropertyChangedEvent.Property->GetFName() == FName("Resolution") ||
-			PropertyChangedEvent.Property->GetFName() == FName("Noise"))
-		{
-			//UpdateSphere();
-		}
-	}
-
-	//Call the base class version  
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
+//#if WITH_EDITOR
+//void AProceduralPlanetActor::PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent)
+//{
+//	if (PropertyChangedEvent.Property != nullptr)
+//	{
+//		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
+//		if(PropertyName == "PlanetSettings")
+//			GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, TEXT("seed changed"));
+//		
+//	}
+//
+//	//Call the base class version  
+//	Super::PostEditChangeProperty(PropertyChangedEvent);
+//}
+//#endif

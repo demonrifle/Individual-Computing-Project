@@ -10,23 +10,15 @@ UProceduralPlanetSettings::UProceduralPlanetSettings()
 
 void UProceduralPlanetSettings::Initialize(bool IsRandom)
 {
-
+	UMaterial* PlanetMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/ProceduralPlanetMaterial"));
+	UMaterialInstanceDynamic* PlanetMaterialInstance = UMaterialInstanceDynamic::Create(PlanetMaterial, this);
+	PlanetMaterialInstance->SetScalarParameterValue(FName("Texture2UTiling"), 5);
+	PlanetMaterialInstance->SetScalarParameterValue(FName("Texture2UTiling"), 5);
+	SphereMaterial = PlanetMaterialInstance;
+	
 	if (IsRandom)
 	{
-		// Initialize the global seed for this planet
-		Seed = FRandomStream();
-		Seed.GenerateNewSeed();
-
-		Radius = Seed.FRandRange(200.0f, 500.0f);
-		Resolution = Seed.RandRange(100, 300);
-
-		// Add random layers of noise
-		int NoiseLayers = Seed.RandRange(1, 3);
-
-		for (int i = 0; i < NoiseLayers; i++)
-		{
-			NoiseSettings.Add(UNoiseLayer::GetRandomNoiseLayer(&Seed));
-		}
+		Randomize();
 
 	}
 	else
@@ -47,6 +39,40 @@ void UProceduralPlanetSettings::UpdateNoiseSettings()
 		{
 			NoiseLayer->UpdateValues();
 		}
+	}
+}
+
+void UProceduralPlanetSettings::Randomize()
+{		
+	Seed = FRandomStream();
+	Seed.GenerateNewSeed();
+
+	Radius = Seed.FRandRange(200.0f, 500.0f);
+	Resolution = Seed.RandRange(100, 300);
+
+	// Add random layers of noise
+	int NoiseLayers = Seed.RandRange(1, 3);
+
+	for (int i = 0; i < NoiseLayers; i++)
+	{
+		NoiseSettings.Add(UNoiseLayer::GetRandomNoiseLayer(&Seed));
+	}
+}
+
+void UProceduralPlanetSettings::RandomizeForSeed(int32 NewSeed)
+{
+	// Initialize the global seed for this planet
+	Seed = FRandomStream(NewSeed);
+
+	Radius = Seed.FRandRange(200.0f, 500.0f);
+	Resolution = Seed.RandRange(100, 300);
+
+	// Add random layers of noise
+	int NoiseLayers = Seed.RandRange(1, 3);
+
+	for (int i = 0; i < NoiseLayers; i++)
+	{
+		NoiseSettings.Add(UNoiseLayer::GetRandomNoiseLayer(&Seed));
 	}
 }
 
@@ -75,3 +101,19 @@ double UProceduralPlanetSettings::GetHeightAt3DPointMax()
 	}
 	return MaxHeight;
 }
+
+#if WITH_EDITOR
+void UProceduralPlanetSettings::PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent)
+{
+	if (PropertyChangedEvent.Property != nullptr)
+	{
+		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
+		if (PropertyName == "InitialSeed")
+			GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, TEXT("seed changed"));
+
+	}
+
+	//Call the base class version  
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif

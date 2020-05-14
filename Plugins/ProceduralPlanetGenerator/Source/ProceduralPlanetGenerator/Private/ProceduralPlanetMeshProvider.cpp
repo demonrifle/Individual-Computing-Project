@@ -16,9 +16,11 @@ void UProceduralPlanetMeshProvider::Initialize(UProceduralPlanetSettings* InProc
 	ProceduralPlanetSettings = InProceduralPlanetSettings;
 	// Validate settings
 	Validate();
+
 	MinSegments = 32;
-	LODMultiplier = 0.50f;
+	LODMultiplier = 0.75f;
 	MaxLOD = GetMaxNumberOfLODs() - 1;
+
 }
 
 float UProceduralPlanetMeshProvider::GetLODMultiplier() const
@@ -45,6 +47,7 @@ void UProceduralPlanetMeshProvider::SetLODMultiplier(float InLODMultiplier)
 void UProceduralPlanetMeshProvider::Initialize_Implementation()
 {
 	Validate();
+
 	// Setup material
 	SetupMaterialSlot(0, FName("Sphere Base"), ProceduralPlanetSettings->SphereMaterial);
 
@@ -79,6 +82,9 @@ bool UProceduralPlanetMeshProvider::GetSectionMeshForLOD_Implementation(int32 LO
 {
 	// We should only ever be queried for section 0
 	check(SectionId == 0 && LODIndex <= MaxLOD);
+
+	// Setup material
+	SetupMaterialSlot(0, FName("Sphere Base"), ProceduralPlanetSettings->SphereMaterial);
 
 	// Set segments for LOD
 	int32 Segments = GetSegmentsForLOD(LODIndex);
@@ -231,11 +237,13 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 Segments, FRuntimeMeshRe
 			}
 		}
 	}
+
 	return true;
 }
 
 void UProceduralPlanetMeshProvider::UpdateMeshParameters(bool bAffectsCollision)
 {
+
 	MaxLOD = GetMaxNumberOfLODs() - 1;
 
 	MarkAllLODsDirty();

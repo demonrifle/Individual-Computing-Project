@@ -10,11 +10,14 @@
 #include "FastNoise.h"
 #include "DVector.h"
 #include "Math/RandomStream.h"
+#include "Engine.h"
 
 #include "NoiseLayer.generated.h"
 
 
-//Enum wrapping/redeclarations
+// Enum wrapping/redeclarations
+// Internal set enum for generated Noise Type. 
+// Cannot be externally set
 UENUM()
 enum class UNoiseType : uint8
 { 
@@ -28,6 +31,7 @@ enum class UNoiseType : uint8
 	WhiteNoise
 };
 
+// Interpolation method. Controls out noise curve generation.
 UENUM()
 enum class UNoiseInterp : uint8 
 {
@@ -36,6 +40,7 @@ enum class UNoiseInterp : uint8
 	Quintic
 };
 
+// Fractal generation types
 UENUM()
 enum class UNoiseFractalType : uint8 
 {
@@ -44,6 +49,7 @@ enum class UNoiseFractalType : uint8
 	RigidMulti
 };
 
+// Cellular generation types
 UENUM()
 enum class UNoiseCellularType : uint8 
 {
@@ -52,7 +58,7 @@ enum class UNoiseCellularType : uint8
 	Natural
 };
 
-
+// Type of calculation done on noise before returning values.
 UENUM()
 enum class UNoiseCellularReturnType : uint8 
 {
@@ -65,12 +71,9 @@ enum class UNoiseCellularReturnType : uint8
 	Distance2Div,
 };
 
-//
-// The class is declared as UCLASS to be seen and edited inside the Editor
-// It has no destructors as UObjects have automatic garbage collection
-//
+
 // Abstract Noise Class to be inheritted from
-//
+
 UCLASS(Abstract)
 class NOISEGENERATOR_API UNoiseLayer : public UObject
 {
@@ -82,6 +85,7 @@ protected:
 	// Type of noise
 		UNoiseType NoiseType;
 
+public:
 	// Toggles the visibiltiy of the layer 
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 1))
 		bool LayerVisibility;
@@ -192,7 +196,7 @@ public:
 	void UpdateValues();
 
 
-	// Gets a randomized Value noise layer.
+	// Gets a randomized Value Fractal noise layer.
 	static UValueFractalNoise* GetRandomLayer(FRandomStream* Seed);
 };
 
@@ -211,7 +215,7 @@ public:
 	void UpdateValues();
 
 
-	// Gets a randomized Value noise layer.
+	// Gets a randomized Perlin noise layer.
 	static UPerlinNoise* GetRandomLayer(FRandomStream* Seed);
 };
 
@@ -228,7 +232,7 @@ public:
 	UPerlinFractalNoise();
 	void UpdateValues();
 
-	// Gets a randomized Value noise layer.
+	// Gets a randomized Perlin Fractal noise layer.
 	static UPerlinFractalNoise* GetRandomLayer(FRandomStream* Seed);
 };
 
@@ -241,7 +245,7 @@ public:
 	USimplexNoise();
 	void UpdateValues();
 
-	// Gets a randomized Value noise layer.
+	// Gets a randomized Simplex noise layer.
 	static USimplexNoise* GetRandomLayer(FRandomStream* Seed);
 
 };
@@ -254,8 +258,7 @@ public:
 	USimplexFractalNoise();
 	void UpdateValues();
 
-
-	// Gets a randomized Value noise layer.
+	// Gets a randomized Simplex Fractal noise layer.
 	static USimplexFractalNoise* GetRandomLayer(FRandomStream* Seed);
 
 };
@@ -282,11 +285,11 @@ public:
 	//	UNoiseLayer* CellularLookupNoise;
 
 
-	// Gets a randomized Value noise layer.
+	// Gets a randomized Cellular noise layer.
 	static UCellularNoise* GetRandomLayer(FRandomStream* Seed);
 };
 
-UCLASS(EditInlineNew)
+UCLASS()
 class UWhiteNoise : public UNoiseLayer
 {
 	GENERATED_BODY()

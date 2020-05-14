@@ -86,7 +86,7 @@ void UNoiseLayer::UpdateValues()
 
 UNoiseLayer * UNoiseLayer::GetRandomNoiseLayer(FRandomStream* Seed)
 {
-	int LayerType = Seed->RandRange(0, 7);
+	int LayerType = Seed->RandRange(0, 6);
 	switch (LayerType)
 	{
 		case 0 :	return UValueNoise::GetRandomLayer(Seed);		
@@ -96,6 +96,7 @@ UNoiseLayer * UNoiseLayer::GetRandomNoiseLayer(FRandomStream* Seed)
 		case 4 :	return USimplexNoise::GetRandomLayer(Seed);
 		case 5 :	return USimplexFractalNoise::GetRandomLayer(Seed);
 		case 6 :	return UCellularNoise::GetRandomLayer(Seed);
+			// Out of generation scope due to generated artefacts.
 		case 7 :	return UWhiteNoise::GetRandomLayer(Seed);
 	}
 	return nullptr;

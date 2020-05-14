@@ -5,55 +5,20 @@
 #include "DVector.h"
 #include "RuntimeMeshComponentPlugin.h"
 
+
 UProceduralPlanetMeshProvider::UProceduralPlanetMeshProvider()
-	: MaxLOD(0)
-		, SphereRadius(100.0f)
-		, MaxSegments(32)
-		, MinSegments(8)
-		, LODMultiplier(0.50)
-		, SphereMaterial(nullptr)
-		, ProceduralPlanetSettings(nullptr)
 {
+	// Default empty constructor
+}
+
+void UProceduralPlanetMeshProvider::Initialize(UProceduralPlanetSettings* InProceduralPlanetSettings)
+{
+	ProceduralPlanetSettings = InProceduralPlanetSettings;
+	// Validate settings
+	Validate();
+	MinSegments = 32;
+	LODMultiplier = 0.50f;
 	MaxLOD = GetMaxNumberOfLODs() - 1;
-}
-
-float UProceduralPlanetMeshProvider::GetSphereRadius() const
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	return SphereRadius;
-}
-
-void UProceduralPlanetMeshProvider::SetSphereRadius(float InSphereRadius)
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	SphereRadius = InSphereRadius;
-	UpdateMeshParameters(true);
-}
-
-int32 UProceduralPlanetMeshProvider::GetMaxSegments() const
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	return MaxSegments;
-}
-
-void UProceduralPlanetMeshProvider::SetMaxSegments(int32 InMaxSegments)
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	MaxSegments = InMaxSegments;
-	UpdateMeshParameters(false);
-}
-
-int32 UProceduralPlanetMeshProvider::GetMinSegments() const
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	return MinSegments;
-}
-
-void UProceduralPlanetMeshProvider::SetMinSegments(int32 InMinSegments)
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	MinSegments = InMinSegments;
-	UpdateMeshParameters(false);
 }
 
 float UProceduralPlanetMeshProvider::GetLODMultiplier() const
@@ -76,38 +41,12 @@ void UProceduralPlanetMeshProvider::SetLODMultiplier(float InLODMultiplier)
 	UpdateMeshParameters(false);
 }
 
-UMaterialInterface* UProceduralPlanetMeshProvider::GetSphereMaterial() const
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	return SphereMaterial;
-}
-
-void UProceduralPlanetMeshProvider::SetSphereMaterial(UMaterialInterface* InSphereMaterial)
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	SphereMaterial = InSphereMaterial;
-	//Re-setup the material again
-	this->SetupMaterialSlot(0, FName("Sphere Base"), SphereMaterial);
-}
-
-UProceduralPlanetSettings * UProceduralPlanetMeshProvider::GetProceduralPlanetSettings() const
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	return ProceduralPlanetSettings;
-}
-
-void UProceduralPlanetMeshProvider::SetProceduralPlanetSettings(UProceduralPlanetSettings * InProceduralPlanetSettings)
-{
-	FScopeLock Lock(&PropertySyncRoot);
-
-	ProceduralPlanetSettings = InProceduralPlanetSettings;
-	UpdateMeshParameters(true);
-
-}
 
 void UProceduralPlanetMeshProvider::Initialize_Implementation()
 {
-	SetupMaterialSlot(0, FName("Sphere Base"), SphereMaterial);
+	Validate();
+	// Setup material
+	SetupMaterialSlot(0, FName("Sphere Base"), ProceduralPlanetSettings->SphereMaterial);
 
 	// Setup LODs
 	TArray<FRuntimeMeshLODProperties> LODs;
@@ -127,6 +66,7 @@ void UProceduralPlanetMeshProvider::Initialize_Implementation()
 		Properties.bCastsShadow = true;
 		Properties.bIsVisible = true;
 		Properties.MaterialSlot = 0;
+		// Use 32 BitIndices always to avoid overflow
 		Properties.bWants32BitIndices = true;
 		Properties.UpdateFrequency = ERuntimeMeshUpdateFrequency::Infrequent;
 
@@ -137,25 +77,14 @@ void UProceduralPlanetMeshProvider::Initialize_Implementation()
 
 bool UProceduralPlanetMeshProvider::GetSectionMeshForLOD_Implementation(int32 LODIndex, int32 SectionId, FRuntimeMeshRenderableMeshData& MeshData)
 {
-	UE_LOG(LogTemp, Verbose, TEXT("RMC Sphere Provider(%d): Getting LOD:%d Section:%d"), FPlatformTLS::GetCurrentThreadId(), LODIndex, SectionId);
-
 	// We should only ever be queried for section 0
 	check(SectionId == 0 && LODIndex <= MaxLOD);
 
-	// Temporary variables declaration
-	float TempRadius;
-	int32 TempMin, TempMax;
-	float TempLODMultiplier;
+	// Set segments for LOD
+	int32 Segments = GetSegmentsForLOD(LODIndex);
 
-	// Set temp variables
-	GetShapeParams(TempRadius, TempMin, TempMax, TempLODMultiplier);
-
-	// Set segements for LOD
-	int32 Segments;
-	GetSegmentsForLOD(LODIndex, TempLODMultiplier, TempMax, TempMin, Segments);
-
-	// Build up Section Mesh 
-	return GetSphereMesh(TempRadius, Segments,  MeshData, ProceduralPlanetSettings);
+	// Build up Section Mesh for LOD
+	return GetSphereMesh(Segments,  MeshData, ProceduralPlanetSettings);
 }
 
 FRuntimeMeshCollisionSettings UProceduralPlanetMeshProvider::GetCollisionSettings_Implementation()
@@ -164,7 +93,7 @@ FRuntimeMeshCollisionSettings UProceduralPlanetMeshProvider::GetCollisionSetting
 	Settings.bUseAsyncCooking = false;
 	Settings.bUseComplexAsSimple = false;
 
-	Settings.Spheres.Emplace(GetSphereRadius());
+	Settings.Spheres.Emplace(ProceduralPlanetSettings->Radius);
 
 	return Settings;
 }
@@ -172,7 +101,11 @@ FRuntimeMeshCollisionSettings UProceduralPlanetMeshProvider::GetCollisionSetting
 // Get render bounds for planet
 FBoxSphereBounds UProceduralPlanetMeshProvider::GetBounds_Implementation()
 {
-	return FBoxSphereBounds(FSphere(FVector::ZeroVector, SphereRadius));
+	Validate();
+	// Return bounds will encapsulate the planet with the heighest available point from noise layers
+	//float BoundsRadius = ProceduralPlanetSettings->Radius + ProceduralPlanetSettings->GetHeightAt3DPointMax();
+	return FBoxSphereBounds(FSphere(FVector::ZeroVector, 300.0f));
+	
 }
 
 bool UProceduralPlanetMeshProvider::IsThreadSafe_Implementation()
@@ -180,26 +113,13 @@ bool UProceduralPlanetMeshProvider::IsThreadSafe_Implementation()
 	return true;
 }
 
-//Threadsafe getter
-void UProceduralPlanetMeshProvider::GetShapeParams(float& OutRadius, int32& OutMinSegments, int32& OutMaxSegments, float& OutLODMultiplier)
-{
-	FScopeLock Lock(&PropertySyncRoot);
-	OutRadius = SphereRadius;
-	OutMinSegments = MinSegments;
-	OutMaxSegments = MaxSegments;
-	OutLODMultiplier = LODMultiplier;
-}
-
-
-/*
- Get the maximum number of available LODs given the maximum and minimum segments.
-
-*/
 int32 UProceduralPlanetMeshProvider::GetMaxNumberOfLODs()
 {
+	Validate();
 	FScopeLock Lock(&PropertySyncRoot);
+
 	int32 MaxLODs = 1;
-	float CurrentSegments = MaxSegments;
+	float CurrentSegments = ProceduralPlanetSettings->Resolution;
 
 	// Up to MaxLODs - 8
 	while (MaxLODs < RUNTIMEMESH_MAXLODS)
@@ -231,19 +151,34 @@ float UProceduralPlanetMeshProvider::CalculateScreenSize(int32 LODIndex)
 	return ScreenSize;
 }
 
+int32 UProceduralPlanetMeshProvider::GetSegmentsForLOD(int32 LODIndex)
+{
+	Validate();
+	// Get segments for required LOD
+	int32 Segments = ProceduralPlanetSettings->Resolution;
+	Segments *= FMath::Pow(LODMultiplier, LODIndex);
+
+	//Return segments at required LOD or Minimum segments if too low
+	return FMath::Max(Segments, MinSegments);
+	
+}
+
 // Calculate actual Mesh data.
-bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Segments, FRuntimeMeshRenderableMeshData& MeshData, UProceduralPlanetSettings* PlanetSettings)
+bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 Segments, FRuntimeMeshRenderableMeshData& MeshData, UProceduralPlanetSettings* PlanetSettings)
 {
 	TArray<FVector> LatitudeVerts;
 	TArray<FVector> TangentVerts;
-	int32 TrisOrder[6] = { 0, 1, Segments + 1, 1, Segments + 2, Segments + 1 };
 	//Baked trigonometric data to avoid computing it too much (sin and cos are expensive !)
+	int32 TrisOrder[6] = { 0, 1, Segments + 1, 1, Segments + 2, Segments + 1 };
+	int32 SphereRadius = PlanetSettings->Radius;
+
 	//Set array size
 	LatitudeVerts.SetNumUninitialized(Segments + 1);
 	TangentVerts.SetNumUninitialized(Segments + 1);
 	//For each latitude segment + 1 due to poles
 	for (int32 LatitudeIndex = 0; LatitudeIndex < Segments + 1; LatitudeIndex++)
 	{
+		// Calculate latitude circles and radius
 		float angle = LatitudeIndex * 2.f * PI / Segments;
 		float x, y;
 		FMath::SinCos(&y, &x, angle);
@@ -262,26 +197,26 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Segm
 			FVector Normal = LatitudeVerts[LatitudeIndex] * r + FVector(0, 0, z);
 			FVector Position = Normal;
 
-			// Valide Planet Settings
-			if (PlanetSettings)
+			// If noise layers
+			if (PlanetSettings->NoiseSettings.Num() != 0)
 			{
-				if (PlanetSettings->NoiseSettings.Num() != 0)
-				{
-					DVector Vector = DVector(Position);
-					double NoiseValue = PlanetSettings->GetHeightAt3DPointForAllLayers(Vector);
+				// Get height for point
+				DVector Vector = DVector(Position);
+				double NoiseValue = PlanetSettings->GetHeightAt3DPointForAllLayers(Vector);
 
-					Position *= (SphereRadius + NoiseValue);
-				}
+				Position *= (SphereRadius + NoiseValue);
 			}
+			// Multiply by radius to get ground point
 			else
 			{
 				Position *= SphereRadius;
 			}
-
+			
 			MeshData.Positions.Add(Position);
 			MeshData.Tangents.Add(Normal, TangentVerts[LatitudeIndex]);
 			MeshData.TexCoords.Add(FVector2D((float)LatitudeIndex / Segments, (float)LongitudeIndex / Segments));
-			MeshData.Colors.Add(FColor::White);
+			MeshData.Colors.Add(FColor::Red);
+			
 		}
 	}
 	//Creating the tris
@@ -299,7 +234,6 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 SphereRadius, int32 Segm
 	return true;
 }
 
-// Update function
 void UProceduralPlanetMeshProvider::UpdateMeshParameters(bool bAffectsCollision)
 {
 	MaxLOD = GetMaxNumberOfLODs() - 1;
@@ -308,5 +242,17 @@ void UProceduralPlanetMeshProvider::UpdateMeshParameters(bool bAffectsCollision)
 	if (bAffectsCollision)
 	{
 		MarkCollisionDirty();
+	}
+}
+
+void UProceduralPlanetMeshProvider::Validate()
+{
+	// If not initialized
+	if (!ProceduralPlanetSettings)
+	{
+		// Log out 
+		UE_LOG(LogTemp, Verbose, TEXT("RMC ProceduralPlanetProvider Initialization for Object: ProceduralPlanetSettings object is uninitialized. Object is being destroyed."));
+		// Destroy provider
+		//BeginDestroy();
 	}
 }

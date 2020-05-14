@@ -1,4 +1,5 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Internal code - Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Custom code - Project belongs to Nikolay Nikolov for the purposes of a final-year university project/dissertation. 2020 All rights reserved.
 
 #include "ProceduralPlanetGenerator.h"
 #include "ProceduralPlanetGeneratorStyle.h"
@@ -18,12 +19,15 @@ static const FName ProceduralPlanetGeneratorTabName("ProceduralPlanetGenerator")
 void FProceduralPlanetGeneratorModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-	
+
+	// Initializes any UI for this module
 	FProceduralPlanetGeneratorStyle::Initialize();
 	FProceduralPlanetGeneratorStyle::ReloadTextures();
 
+	// Registers declared commands 
 	FProceduralPlanetGeneratorCommands::Register();
 	
+	// Initialize and map all actions
 	PluginCommands = MakeShareable(new FUICommandList);
 
 	PluginCommands->MapAction(
@@ -36,22 +40,34 @@ void FProceduralPlanetGeneratorModule::StartupModule()
 		FExecuteAction::CreateRaw(this, &FProceduralPlanetGeneratorModule::SpawnRandomPlanet),
 		FCanExecuteAction());
 
-		
+		// Get the level editor module
 	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
 	
+	// Initialize a new MenuExtender
 	TSharedPtr<FExtender> MenuExtender = MakeShareable(new FExtender());
-	MenuExtender->AddMenuExtension("WindowLayout", EExtensionHook::After, PluginCommands, FMenuExtensionDelegate::CreateRaw(this, &FProceduralPlanetGeneratorModule::AddMenuExtension));
+
+	// Add the menu Extension
+	MenuExtender->AddMenuExtension(
+		// Extension hook to add around
+		"WindowLayout", 
+		// Place to add
+		EExtensionHook::After, 
+		PluginCommands, 
+		// Bind delegate to execute
+		FMenuExtensionDelegate::CreateRaw(this, &FProceduralPlanetGeneratorModule::AddMenuExtension));
 
 	LevelEditorModule.GetMenuExtensibilityManager()->AddExtender(MenuExtender);
 
-	// Make new ToolbarExtender
+	// Initialize a new ToolbarExtender
 	TSharedPtr<FExtender> ToolbarExtender = MakeShareable(new FExtender);
 	// Add/register extension to it
 	ToolbarExtender->AddToolBarExtension(
-		//After Game Section
-		"Game", 
+		//Extension hook to add around
+		"Game",
+		// Place to add
 		EExtensionHook::After, 
-		PluginCommands, 
+		PluginCommands,
+		// Bind delegate to execute
 		FToolBarExtensionDelegate::CreateRaw(this, &FProceduralPlanetGeneratorModule::AddToolbarExtension));
 		
 	LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(ToolbarExtender);
@@ -122,6 +138,7 @@ void FProceduralPlanetGeneratorModule::SpawnRandomPlanet()
 
 void FProceduralPlanetGeneratorModule::AddMenuExtension(FMenuBuilder& Builder)
 {
+	// UI Elements to add
 	Builder.BeginSection("PlanetEngine");
 	{
 		Builder.AddMenuEntry(FProceduralPlanetGeneratorCommands::Get().SpawnBlankPlanet);
@@ -132,6 +149,7 @@ void FProceduralPlanetGeneratorModule::AddMenuExtension(FMenuBuilder& Builder)
 
 void FProceduralPlanetGeneratorModule::AddToolbarExtension(FToolBarBuilder& Builder)
 {
+	// UI Elements to add
 	Builder.BeginSection("PlanetEngine");
 	{
 		Builder.AddToolBarButton(FProceduralPlanetGeneratorCommands::Get().SpawnBlankPlanet);

@@ -9,20 +9,25 @@
 
 #include "ProceduralPlanetSettings.generated.h"
 
-/**
- * 
- */
+// Plante settings class. Combines atomic and complex settings
 UCLASS(DefaultToInstanced)
-class PROCEDURALPLANETGENERATOR_API UProceduralPlanetSettings : public UObject
+class PROCEDURALPLANETGENERATOR_API UProceduralPlanetSettings : public UActorComponent
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "GeneralPlanetSettings")
+	// Planet seed. Use this to recreate the planet
+	UPROPERTY(EditAnywhere)
 		FRandomStream Seed;
-	UPROPERTY(Category = "GeneralPlanetSettings", EditAnywhere)
+	// Planet radius. 
+	UPROPERTY(EditAnywhere)
 		float Radius;
-	UPROPERTY(Category = "GeneralPlanetSettings", EditAnywhere)
+	// Planet density
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "32", ClampMax = "2048"))
 		int32 Resolution;
+
+	// Material properties 
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* SphereMaterial;
 	
 	UPROPERTY(EditAnywhere, Instanced)
 		TArray<UNoiseLayer*> NoiseSettings;
@@ -30,6 +35,12 @@ public:
 	UProceduralPlanetSettings();
 	
 	void Initialize(bool IsRandom);
+
+	// Calls update settings inside the FastNoise class.
 	void UpdateNoiseSettings();
+
+	// Easy getter method which calculates applied noise of all layers
 	double GetHeightAt3DPointForAllLayers(DVector Vector);
+	// Returns the maximum possible height of the current noise settings
+	double GetHeightAt3DPointMax();
 };

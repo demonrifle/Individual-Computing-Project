@@ -1,4 +1,5 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Internal code - Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Custom code - Project belongs to Nikolay Nikolov for the purposes of a final-year university project/dissertation. 2020 All rights reserved.
 
 #pragma once
 

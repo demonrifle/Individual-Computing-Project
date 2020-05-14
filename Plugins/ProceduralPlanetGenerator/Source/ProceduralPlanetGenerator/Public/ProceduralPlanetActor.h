@@ -45,8 +45,6 @@ public:
 	// OnConstruction reconstructs the whole mesh during every change and whenever an object is spawned or moved.
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-	// Generate sphere does the initialization of all 
-	void GenerateSphere();
 
 	// The update of the sphere takes place after all initialization is done.
 	// It updates all values according to any outside changes and updates all objects interally

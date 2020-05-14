@@ -1,4 +1,5 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Internal code - Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Custom code - Project belongs to Nikolay Nikolov for the purposes of a final-year university project/dissertation. 2020 All rights reserved.
 
 #include "ProceduralPlanetGeneratorStyle.h"
 #include "ProceduralPlanetGenerator.h"
@@ -37,6 +38,7 @@ FName FProceduralPlanetGeneratorStyle::GetStyleSetName()
 #define TTF_FONT( RelativePath, ... ) FSlateFontInfo( Style->RootToContentDir( RelativePath, TEXT(".ttf") ), __VA_ARGS__ )
 #define OTF_FONT( RelativePath, ... ) FSlateFontInfo( Style->RootToContentDir( RelativePath, TEXT(".otf") ), __VA_ARGS__ )
 
+// Icon sizes to be used
 const FVector2D Icon40x40(40.0f, 40.0f);
 const FVector2D Icon256x256(256.0f, 256.0f);
 
@@ -45,6 +47,7 @@ TSharedRef< FSlateStyleSet > FProceduralPlanetGeneratorStyle::Create()
 	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("ProceduralPlanetGeneratorStyle"));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("ProceduralPlanetGenerator")->GetBaseDir() / TEXT("Resources"));
 
+	// Set icons for UI elements
 	Style->Set("ProceduralPlanetGenerator.SpawnBlankPlanet", new IMAGE_BRUSH(TEXT("BlankPlanetIcon_256x"), Icon40x40));
 	Style->Set("ProceduralPlanetGenerator.SpawnRandomPlanet", new IMAGE_BRUSH(TEXT("BlankPlanetIcon_256x"), Icon40x40));
 

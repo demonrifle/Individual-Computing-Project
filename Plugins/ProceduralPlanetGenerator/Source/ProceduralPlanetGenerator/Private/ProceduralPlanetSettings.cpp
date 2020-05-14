@@ -5,7 +5,7 @@
 
 UProceduralPlanetSettings::UProceduralPlanetSettings()
 {
-	Initialize(false);
+
 }
 
 void UProceduralPlanetSettings::Initialize(bool IsRandom)
@@ -36,9 +36,6 @@ void UProceduralPlanetSettings::Initialize(bool IsRandom)
 		// Set defaults
 		Radius = 200.0f;
 		Resolution = 50;
-
-		// One default uninitialized noise layer
-		NoiseSettings.Add(NewObject<UNoiseLayer>(this, TEXT("Noise Layers")));
 	}
 }
 
@@ -64,4 +61,17 @@ double UProceduralPlanetSettings::GetHeightAt3DPointForAllLayers(DVector Vector)
 		}
 	}
 	return NoiseValue;
+}
+
+double UProceduralPlanetSettings::GetHeightAt3DPointMax()
+{
+	double MaxHeight = 0.0f;
+	for (UNoiseLayer* NoiseLayer : NoiseSettings)
+	{
+		if (NoiseLayer)
+		{
+			MaxHeight += (NoiseLayer->Amplitude - NoiseLayer->ElevationReduction);
+		}
+	}
+	return MaxHeight;
 }

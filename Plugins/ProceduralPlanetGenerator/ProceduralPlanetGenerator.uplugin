@@ -17,12 +17,12 @@
 	"Modules": [
 		{
 			"Name": "ProceduralPlanetGenerator",
-			"Type": "Editor",
+			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		},
 		{
 			"Name": "NoiseGenerator",
-			"Type": "Editor",
+			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
 	],	

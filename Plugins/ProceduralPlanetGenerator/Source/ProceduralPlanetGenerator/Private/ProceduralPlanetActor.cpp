@@ -22,22 +22,16 @@ void AProceduralPlanetActor::Initialize(bool IsRandom)
 
 	// Declare settings object
 	PlanetSettings = NewObject<UProceduralPlanetSettings>(this, TEXT("PlanetSettings"));
-
-	// Declare RMC custom provider
-	PlanetProvider = NewObject<UProceduralPlanetMeshProvider>(this, TEXT("RuntimeMeshprovider-Planet"));
-
 	// Initialize variables, if IsRandom values will be randomized
 	PlanetSettings->Initialize(IsRandom);
 	PlanetSettings->UpdateNoiseSettings();
 
-	PlanetProvider->SetProceduralPlanetSettings(PlanetSettings);
-	PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
-	
-	PlanetProvider->SetMaxSegments(PlanetSettings->Resolution);
-	PlanetProvider->SetMinSegments(PlanetSettings->Resolution);
-	
+	// Declare RMC custom provider
+	PlanetProvider = NewObject<UProceduralPlanetMeshProvider>(this, TEXT("RuntimeMeshprovider-Planet"));
+	// Initialize with Settings object to work as intended
+	PlanetProvider->Initialize(PlanetSettings);
 
-	// Initialize provider and start the chain call internally in the RMC to generate the mesh
+	// Initialize provider with the RMC and start the chain call to generate the mesh
 	GetRuntimeMeshComponent()->Initialize(PlanetProvider);
 
 }
@@ -66,46 +60,13 @@ void AProceduralPlanetActor::OnConstruction(const FTransform & Transform)
 
 }
 
-void AProceduralPlanetActor::GenerateSphere()
-{
-	// Validate all objects before creating new to ensure no memory loss
-	if (!PlanetProvider)
-	PlanetSettings = NewObject<UProceduralPlanetSettings>(this, TEXT("PlanetSettings"));
-
-	if (!PlanetSettings)
-	{
-		PlanetProvider = NewObject<UProceduralPlanetMeshProvider>(this, TEXT("RuntimeMeshprovider-Planet"));
-
-		PlanetProvider->SetProceduralPlanetSettings(PlanetSettings);
-		PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
-		PlanetProvider->SetMaxSegments(PlanetSettings->Resolution);
-		PlanetProvider->SetMinSegments(PlanetSettings->Resolution);
-
-		if (PlanetSettings->NoiseSettings.Num() != 0)
-		{
-			PlanetSettings->UpdateNoiseSettings();
-		}
-
-		GetRuntimeMeshComponent()->Initialize(PlanetProvider);
-	}
-
-}
 
 // This method should only be called when both provider and settings are initialized
 void AProceduralPlanetActor::UpdateSphere()
 {
-	
-	// Update it
-	PlanetProvider->SetSphereRadius(PlanetSettings->Radius);
-	PlanetProvider->SetMaxSegments(PlanetSettings->Resolution);
-	PlanetProvider->SetMinSegments(PlanetSettings->Resolution);
-
 	// Update noise if it exists
-	if (PlanetSettings->NoiseSettings.Num() != 0)
-	{
-		PlanetSettings->UpdateNoiseSettings();
-	}
-
+	PlanetSettings->UpdateNoiseSettings();
+	
 	// Mark provider for reconstruction
 	PlanetProvider->MarkSectionDirty(0, 0);
 }

@@ -10,16 +10,13 @@ UProceduralPlanetSettings::UProceduralPlanetSettings()
 
 void UProceduralPlanetSettings::Initialize(bool IsRandom)
 {
-	UMaterial* PlanetMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/ProceduralPlanetMaterial"));
-	UMaterialInstanceDynamic* PlanetMaterialInstance = UMaterialInstanceDynamic::Create(PlanetMaterial, this);
-	PlanetMaterialInstance->SetScalarParameterValue(FName("Texture2UTiling"), 5);
-	PlanetMaterialInstance->SetScalarParameterValue(FName("Texture2UTiling"), 5);
-	SphereMaterial = PlanetMaterialInstance;
+	MaterialSettings = NewObject<UProceduralPlanetMaterialSettings>(this);
+	MaterialSettings->Initialize();
 	
 	if (IsRandom)
 	{
+		Seed = FRandomStream(FMath::Rand());
 		Randomize();
-
 	}
 	else
 	{	// Initialize the global seed for this planet
@@ -44,15 +41,18 @@ void UProceduralPlanetSettings::UpdateNoiseSettings()
 
 void UProceduralPlanetSettings::Randomize()
 {		
-	Seed = FRandomStream();
-	Seed.GenerateNewSeed();
+	// Clamp seed to sensible values
+	int32 NewSeed = Seed.RandRange(0, 100000);
+	Seed = FRandomStream(NewSeed);
 
 	Radius = Seed.FRandRange(200.0f, 500.0f);
-	Resolution = Seed.RandRange(100, 300);
+	Resolution = Seed.RandRange(50, 300);
+
+	MaterialSettings->Randomize(&Seed);
 
 	// Add random layers of noise
+	NoiseSettings.Empty();
 	int NoiseLayers = Seed.RandRange(1, 3);
-
 	for (int i = 0; i < NoiseLayers; i++)
 	{
 		NoiseSettings.Add(UNoiseLayer::GetRandomNoiseLayer(&Seed));
@@ -67,7 +67,11 @@ void UProceduralPlanetSettings::RandomizeForSeed(int32 NewSeed)
 	Radius = Seed.FRandRange(200.0f, 500.0f);
 	Resolution = Seed.RandRange(100, 300);
 
+	// Randomize material properties
+	MaterialSettings->Randomize(&Seed);
+
 	// Add random layers of noise
+	NoiseSettings.Empty();
 	int NoiseLayers = Seed.RandRange(1, 3);
 
 	for (int i = 0; i < NoiseLayers; i++)
@@ -109,7 +113,10 @@ void UProceduralPlanetSettings::PostEditChangeProperty(FPropertyChangedEvent & P
 	{
 		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
 		if (PropertyName == "InitialSeed")
-			GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, TEXT("seed changed"));
+		{
+			int32 NewSeed = Seed.GetInitialSeed();
+			RandomizeForSeed(NewSeed);
+		}
 
 	}
 

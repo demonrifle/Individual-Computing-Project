@@ -10,6 +10,7 @@
 #include "ProceduralPlanetMeshProvider.h"
 #include "ProceduralPlanetSettings.h"
 #include "NoiseLayer.h"
+#include "Input/Reply.h"
 
 #include "ProceduralPlanetActor.generated.h"
 
@@ -22,7 +23,7 @@ class PROCEDURALPLANETGENERATOR_API AProceduralPlanetActor : public ARuntimeMesh
 public:
 
 
-	UPROPERTY(VisibleAnywhere, Category = "Planet Settings")
+	UPROPERTY(EditAnywhere, Instanced, Category = "Planet Settings")
 		UProceduralPlanetSettings* PlanetSettings;
 
 	UProceduralPlanetMeshProvider* PlanetProvider;
@@ -39,19 +40,20 @@ public:
 	// This should be always called first after a new object is created
 	void Initialize(bool IsRandom);
 
+	// The update of the sphere takes place after all initialization is done.
+	// It updates all values according to any outside changes and updates all objects interally
+	void UpdateSphere();
+
+	// Helper method to access settings randomization function from customization class
+	FReply Randomize();
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// OnConstruction reconstructs the whole mesh during every change and whenever an object is spawned or moved.
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-
-	// The update of the sphere takes place after all initialization is done.
-	// It updates all values according to any outside changes and updates all objects interally
-	void UpdateSphere();
-
-	
-//#if WITH_EDITOR
-//	virtual void PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent) override;
-//#endif
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent) override;
+#endif
 };

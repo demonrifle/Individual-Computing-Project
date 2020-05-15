@@ -74,7 +74,7 @@ enum class UNoiseCellularReturnType : uint8
 
 // Abstract Noise Class to be inheritted from
 
-UCLASS(Abstract)
+UCLASS(Abstract, DefaultToInstanced)
 class NOISEGENERATOR_API UNoiseLayer : public UObject
 {
 	GENERATED_BODY()

@@ -7,6 +7,7 @@
 
 AProceduralPlanetActor::AProceduralPlanetActor()
 {
+	//Initialize(false);
 }
 
 void AProceduralPlanetActor::BeginPlay()
@@ -18,13 +19,25 @@ void AProceduralPlanetActor::BeginPlay()
 	{
 		UpdateSphere();
 	}
-	// Else initialize blank planet
-	else
-	{
-		Initialize(false);
-	}
 }
 
+void AProceduralPlanetActor::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
+void AProceduralPlanetActor::OnConstruction(const FTransform & Transform)
+{
+	// Call parent function
+	Super::OnConstruction(Transform);
+
+	// Validate 
+	// Check settings and provider are initialized
+	if (PlanetProvider && PlanetSettings)
+	{
+		UpdateSphere();
+	}
+}
 
 void AProceduralPlanetActor::Initialize(bool IsRandom)
 {
@@ -47,53 +60,29 @@ void AProceduralPlanetActor::Initialize(bool IsRandom)
 
 }
 
-void AProceduralPlanetActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
-void AProceduralPlanetActor::OnConstruction(const FTransform & Transform)
-{
-	// Call parent function
-	Super::OnConstruction(Transform);
-
-	// Validate 
-	// Check settings and provider are initialized
-	if (PlanetProvider && PlanetSettings)
-	{
-		UpdateSphere();
-	}
-	// Else initialize blank planet
-	else
-	{
-		Initialize(false);
-	}
-
-}
-
-
 // This method should only be called when both provider and settings are initialized
 void AProceduralPlanetActor::UpdateSphere()
 {
 	// Update noise if it exists
 	PlanetSettings->UpdateNoiseSettings();
-	
+
 	// Mark provider for reconstruction
-	PlanetProvider->MarkSectionDirty(0, 0);
+	PlanetProvider->MarkAllLODsDirty();
+	PlanetProvider->MarkCollisionDirty();
 }
 
-//#if WITH_EDITOR
-//void AProceduralPlanetActor::PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent)
-//{
-//	if (PropertyChangedEvent.Property != nullptr)
-//	{
-//		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
-//		if(PropertyName == "PlanetSettings")
-//			GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Red, TEXT("seed changed"));
-//		
-//	}
-//
-//	//Call the base class version  
-//	Super::PostEditChangeProperty(PropertyChangedEvent);
-//}
-//#endif
+FReply AProceduralPlanetActor::Randomize()
+{
+	PlanetSettings->Randomize();
+	UpdateSphere();
+	return FReply::Handled();
+}
+
+
+#if WITH_EDITOR
+void AProceduralPlanetActor::PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent)
+{
+	//Call the base class version  
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif

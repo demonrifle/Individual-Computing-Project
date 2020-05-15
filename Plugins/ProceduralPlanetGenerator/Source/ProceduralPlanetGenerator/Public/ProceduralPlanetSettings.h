@@ -7,30 +7,30 @@
 #include "NoiseLayer.h"
 #include "Math/RandomStream.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "ProceduralPlanetMaterialSettings.h"
 
 #include "ProceduralPlanetSettings.generated.h"
 
 // Plante settings class. Combines atomic and complex settings
-UCLASS()
+UCLASS(EditInlineNew, DefaultToInstanced)
 class PROCEDURALPLANETGENERATOR_API UProceduralPlanetSettings : public UActorComponent
 {
 	GENERATED_BODY()
 public:
 	// Planet seed. Use this to recreate the planet
-	UPROPERTY(EditAnywhere, Category = "Procedural Planet Settings")
+	UPROPERTY(EditAnywhere, Category = "Planet Settings")
 		FRandomStream Seed;
 	// Planet radius. 
-	UPROPERTY(EditAnywhere, Category = "Procedural Planet Settings")
+	UPROPERTY(EditAnywhere, Category = "Planet Settings")
 		float Radius;
 	// Planet density
-	UPROPERTY(EditAnywhere, Category = "Procedural Planet Settings", meta = (ClampMin = "32", ClampMax = "2048"))
+	UPROPERTY(EditAnywhere, Category = "Planet Settings", meta = (ClampMin = "32", ClampMax = "2048"))
 		int32 Resolution;
 
-	// Material properties 
-	UPROPERTY(EditAnywhere, Category = "Procedural Planet Settings|Material Settings")
-		UMaterialInterface* SphereMaterial;
-	
-	UPROPERTY(EditAnywhere, Category = "Procedural Planet Settings|Noise Settings")
+	UPROPERTY(EditAnywhere, Instanced, Category = "Material Settings")
+		UProceduralPlanetMaterialSettings* MaterialSettings;
+
+	UPROPERTY(EditAnywhere, Instanced, Category = "Noise Settings")
 		TArray<UNoiseLayer*> NoiseSettings;
 public:
 	UProceduralPlanetSettings();

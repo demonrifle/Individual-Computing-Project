@@ -4,11 +4,13 @@
 #include "ProceduralPlanetGenerator.h"
 #include "ProceduralPlanetGeneratorStyle.h"
 #include "ProceduralPlanetGeneratorCommands.h"
+#include "ProceduralPlanetCustomization.h"
 #include "ProceduralPlanetActor.h"
 #include "Misc/MessageDialog.h"
 #include "Kismet/GameplayStatics.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Editor/EditorEngine.h"
+#include "PropertyEditor/Public/PropertyEditorModule.h"
 
 #include "LevelEditor.h"
 
@@ -72,16 +74,37 @@ void FProceduralPlanetGeneratorModule::StartupModule()
 		
 	LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(ToolbarExtender);
 
+
+	// Get property editor module
+	FPropertyEditorModule& PropertyEditor = FModuleManager::LoadModuleChecked<FPropertyEditorModule >("PropertyEditor");
+
+	// Register NoiseLayer to be customized by the NoiseLayerCustomization class
+	PropertyEditor.RegisterCustomClassLayout
+	(
+		"ProceduralPlanetActor",
+		FOnGetDetailCustomizationInstance::CreateStatic(&FProceduralPlanetCustomization::MakeInstance)
+	);
+
+	//Notify customization
+	PropertyEditor.NotifyCustomizationModuleChanged();
 	
 }
 
 void FProceduralPlanetGeneratorModule::ShutdownModule()
-{
+{	
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
 	FProceduralPlanetGeneratorStyle::Shutdown();
 
 	FProceduralPlanetGeneratorCommands::Unregister();
+
+	//Unregister class customization on shutdown
+	if (FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
+	{
+		FPropertyEditorModule& PropertyEditor = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+
+		PropertyEditor.UnregisterCustomClassLayout("NoiseLayer");
+	}
 }
 
 void FProceduralPlanetGeneratorModule::SpawnBlankPlanet()

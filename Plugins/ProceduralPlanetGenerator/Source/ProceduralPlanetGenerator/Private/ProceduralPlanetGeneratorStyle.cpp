@@ -49,7 +49,7 @@ TSharedRef< FSlateStyleSet > FProceduralPlanetGeneratorStyle::Create()
 
 	// Set icons for UI elements
 	Style->Set("ProceduralPlanetGenerator.SpawnBlankPlanet", new IMAGE_BRUSH(TEXT("BlankPlanetIcon_256x"), Icon40x40));
-	Style->Set("ProceduralPlanetGenerator.SpawnRandomPlanet", new IMAGE_BRUSH(TEXT("BlankPlanetIcon_256x"), Icon40x40));
+	Style->Set("ProceduralPlanetGenerator.SpawnRandomPlanet", new IMAGE_BRUSH(TEXT("RandomPlanetIcon_256x"), Icon40x40));
 
 	return Style;
 }

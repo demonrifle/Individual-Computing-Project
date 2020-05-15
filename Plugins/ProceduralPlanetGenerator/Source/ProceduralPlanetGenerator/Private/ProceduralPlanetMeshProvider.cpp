@@ -49,7 +49,7 @@ void UProceduralPlanetMeshProvider::Initialize_Implementation()
 	Validate();
 
 	// Setup material
-	SetupMaterialSlot(0, FName("Sphere Base"), ProceduralPlanetSettings->SphereMaterial);
+	SetupMaterialSlot(0, FName("Sphere Base"), ProceduralPlanetSettings->MaterialSettings->SphereMaterial);
 
 	// Setup LODs
 	TArray<FRuntimeMeshLODProperties> LODs;
@@ -84,7 +84,7 @@ bool UProceduralPlanetMeshProvider::GetSectionMeshForLOD_Implementation(int32 LO
 	check(SectionId == 0 && LODIndex <= MaxLOD);
 
 	// Setup material
-	SetupMaterialSlot(0, FName("Sphere Base"), ProceduralPlanetSettings->SphereMaterial);
+	SetupMaterialSlot(0, FName("Sphere Base"), ProceduralPlanetSettings->MaterialSettings->SphereMaterial);
 
 	// Set segments for LOD
 	int32 Segments = GetSegmentsForLOD(LODIndex);
@@ -162,10 +162,11 @@ int32 UProceduralPlanetMeshProvider::GetSegmentsForLOD(int32 LODIndex)
 	Validate();
 	// Get segments for required LOD
 	int32 Segments = ProceduralPlanetSettings->Resolution;
-	Segments *= FMath::Pow(LODMultiplier, LODIndex);
-
-	//Return segments at required LOD or Minimum segments if too low
-	return FMath::Max(Segments, MinSegments);
+	if (LODIndex < MaxLOD)
+	{
+		return 	Segments *= FMath::Pow(LODMultiplier, LODIndex);
+	}
+	else return MinSegments;
 	
 }
 
@@ -177,6 +178,14 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 Segments, FRuntimeMeshRe
 	//Baked trigonometric data to avoid computing it too much (sin and cos are expensive !)
 	int32 TrisOrder[6] = { 0, 1, Segments + 1, 1, Segments + 2, Segments + 1 };
 	int32 SphereRadius = PlanetSettings->Radius;
+	float MaxHeight = PlanetSettings->GetHeightAt3DPointMax();
+
+	GEngine->AddOnScreenDebugMessage(
+		0,
+		2.0f,
+		FColor::Red,
+		FString::Printf(TEXT("MaxHeight : %f"), MaxHeight)
+	);
 
 	//Set array size
 	LatitudeVerts.SetNumUninitialized(Segments + 1);
@@ -202,6 +211,7 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 Segments, FRuntimeMeshRe
 		{
 			FVector Normal = LatitudeVerts[LatitudeIndex] * r + FVector(0, 0, z);
 			FVector Position = Normal;
+			FColor VertexColor;
 
 			// If noise layers
 			if (PlanetSettings->NoiseSettings.Num() != 0)
@@ -211,17 +221,19 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 Segments, FRuntimeMeshRe
 				double NoiseValue = PlanetSettings->GetHeightAt3DPointForAllLayers(Vector);
 
 				Position *= (SphereRadius + NoiseValue);
+				VertexColor = PlanetSettings->MaterialSettings->GetVertexColorFor3DHeight(NoiseValue, MaxHeight);
 			}
 			// Multiply by radius to get ground point
 			else
 			{
 				Position *= SphereRadius;
+				VertexColor = FColor(0, 0, 0, 0);
 			}
 			
 			MeshData.Positions.Add(Position);
 			MeshData.Tangents.Add(Normal, TangentVerts[LatitudeIndex]);
 			MeshData.TexCoords.Add(FVector2D((float)LatitudeIndex / Segments, (float)LongitudeIndex / Segments));
-			MeshData.Colors.Add(FColor::Red);
+			MeshData.Colors.Add(VertexColor);
 			
 		}
 	}

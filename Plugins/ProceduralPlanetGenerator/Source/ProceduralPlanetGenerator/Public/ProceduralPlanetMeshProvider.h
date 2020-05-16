@@ -64,7 +64,7 @@ private:
 
 	// Calculates the mesh for the sphere and adds to MeshData.
 	// @param Segments Segments are used even thought the resolution can already be found in the PlanetSettings object since it is different for LODs
-	static bool GetSphereMesh(int32 Segments, FRuntimeMeshRenderableMeshData& MeshData, UProceduralPlanetSettings* PlanetSettings);
+	bool GetSphereMesh(int32 Segments, FRuntimeMeshRenderableMeshData& MeshData);
 	// Updates mesh. Can also update collision. Collision shouldn't be updated during LOD changes as it will only ever take affect at LOD 0 anyway, so it's needless calculations.
 	void UpdateMeshParameters(bool bAffectsCollision);	
 	// Validates the ProceduralPlanetSettings object. Should be called from any functions accessing it

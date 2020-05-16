@@ -106,6 +106,24 @@ double UProceduralPlanetSettings::GetHeightAt3DPointMax()
 	return MaxHeight;
 }
 
+UMaterialInterface* UProceduralPlanetSettings::GetSphereMaterial()
+{
+	if (MaterialSettings)
+	{
+		return MaterialSettings->SphereMaterial;
+	}
+	return nullptr;
+}
+
+FColor UProceduralPlanetSettings::GetVertexColorFor3DHeight(float Height, float MaxHeight)
+{
+	if (MaterialSettings)
+	{
+		return MaterialSettings->GetVertexColorFor3DHeight(Height, MaxHeight);
+	}
+	return FColor(0, 0, 0, 0);
+}
+
 #if WITH_EDITOR
 void UProceduralPlanetSettings::PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent)
 {

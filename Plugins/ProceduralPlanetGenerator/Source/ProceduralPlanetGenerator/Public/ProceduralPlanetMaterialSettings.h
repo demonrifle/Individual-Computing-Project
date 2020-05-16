@@ -66,8 +66,10 @@ public :
 	UPROPERTY(EditAnywhere)
 		FVector2D Texture4Tiling;
 private:
+	UMaterial* PlanetMaterial;
 	UMaterialInstanceDynamic* MaterialInstance;
 	UTexture* DefaultTexture;
+	bool CanEditSettings;
 public :
 	UProceduralPlanetMaterialSettings();
 	// Initialize all variables

@@ -20,13 +20,15 @@ UProceduralPlanetMaterialSettings::UProceduralPlanetMaterialSettings()
 
 	Texture4(nullptr),
 	Texture4Height(1.00f),
-	Texture4Tiling(FVector2D(1.f, 1.f))
+	Texture4Tiling(FVector2D(1.f, 1.f)),
+
+	CanEditSettings(false)
 {
 }
 
 void UProceduralPlanetMaterialSettings::Initialize()
 {
-	UMaterial* PlanetMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/StarterContent/Materials/M_ProceduralPlanetMaterial"));
+	PlanetMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/StarterContent/Materials/M_ProceduralPlanetMaterial"));
 	
 	MaterialInstance = UMaterialInstanceDynamic::Create(PlanetMaterial, this);
 
@@ -38,6 +40,7 @@ void UProceduralPlanetMaterialSettings::Initialize()
 
 	Update();
 	SphereMaterial = MaterialInstance;
+	CanEditSettings = true;
 }
 
 void UProceduralPlanetMaterialSettings::Update()
@@ -120,6 +123,16 @@ void UProceduralPlanetMaterialSettings::PostEditChangeProperty(FPropertyChangedE
 	if (PropertyChangedEvent.Property != nullptr)
 	{
 		Update();
+		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
+		if (PropertyName == "SphereMaterial")
+		{
+			if (SphereMaterial->GetMaterial()->GetName() == PlanetMaterial->GetName())
+			{
+				CanEditSettings = true;
+				Initialize();
+			}
+			else CanEditSettings = false;
+		}
 	}
 
 	//Call the base class version  

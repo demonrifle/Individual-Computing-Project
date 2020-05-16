@@ -23,10 +23,10 @@ class PROCEDURALPLANETGENERATOR_API AProceduralPlanetActor : public ARuntimeMesh
 public:
 
 
-	UPROPERTY(EditAnywhere, Instanced, Category = "Planet Settings")
-		UProceduralPlanetSettings PlanetSettings;
+	//UPROPERTY(EditAnywhere, Instanced, Category = "Planet Settings")
+	//	UProceduralPlanetSettings* PlanetSettings;
 
-	UProceduralPlanetMeshProvider* PlanetProvider;
+	//UProceduralPlanetMeshProvider* PlanetProvider;
 
 protected:
 	// Called when the game starts or when spawned

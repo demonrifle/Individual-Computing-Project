@@ -18,19 +18,20 @@ class PROCEDURALPLANETGENERATOR_API UProceduralPlanetSettings : public UObject
 	GENERATED_BODY()
 public:
 	// Planet seed. Use this to recreate the planet
-	UPROPERTY(EditAnywhere, Category = "Planet Settings")
+	UPROPERTY(EditAnywhere)
 		FRandomStream Seed;
 	// Planet radius. 
-	UPROPERTY(EditAnywhere, Category = "Planet Settings")
+	UPROPERTY(EditAnywhere)
 		float Radius;
 	// Planet density
-	UPROPERTY(EditAnywhere, Category = "Planet Settings", meta = (ClampMin = "32", ClampMax = "2048"))
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "32", ClampMax = "2048"))
 		int32 Resolution;
 
-	UPROPERTY(EditAnywhere, Instanced, Category = "Material Settings")
+private:
+	UPROPERTY(EditAnywhere, Instanced)
 		UProceduralPlanetMaterialSettings* MaterialSettings;
 
-	UPROPERTY(EditAnywhere, Instanced, Category = "Noise Settings")
+	UPROPERTY(EditAnywhere, Instanced)
 		TArray<UNoiseLayer*> NoiseSettings;
 public:
 	UProceduralPlanetSettings();
@@ -47,6 +48,11 @@ public:
 	double GetHeightAt3DPointForAllLayers(DVector Vector);
 	// Returns the maximum possible height of the current noise settings
 	double GetHeightAt3DPointMax();
+
+	// Retursn the sphere material
+	UMaterialInterface* GetSphereMaterial();
+	// Helper method to access the same function of the material settings
+	FColor GetVertexColorFor3DHeight(float Height, float MaxHeight);
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent) override;

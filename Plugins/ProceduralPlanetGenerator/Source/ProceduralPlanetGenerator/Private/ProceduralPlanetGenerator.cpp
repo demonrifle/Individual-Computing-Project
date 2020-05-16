@@ -122,14 +122,18 @@ void FProceduralPlanetGeneratorModule::SpawnBlankPlanet()
 	{
 		// Initialize with blank variables
 		ProceduralPlanetActor->Initialize(false);
+
+		// Finish spawning at position
+		UGameplayStatics::FinishSpawningActor(ProceduralPlanetActor, FTransform::Identity);
+
+		// Calculate view bounds of the new generation and focus the camera on it
+		FBox ViewBounds = ProceduralPlanetActor->PlanetProvider->GetBounds().GetBox();
+		GEditor->MoveViewportCamerasToBox(ViewBounds, true);
+		// Set new actor as selection
+		GEditor->SelectNone(true, true, false);
+		GEditor->SelectActor(ProceduralPlanetActor, true, false, false, true);
 	}
 
-	// Finish spawning at position
-	UGameplayStatics::FinishSpawningActor(ProceduralPlanetActor, FTransform::Identity);
-
-	// Calculate view bounds of the new generation and focus the camera on it
-	FBox ViewBounds = ProceduralPlanetActor->PlanetProvider->GetBounds().GetBox();
-	GEditor->MoveViewportCamerasToBox(ViewBounds, true);
 
 }
 
@@ -148,14 +152,18 @@ void FProceduralPlanetGeneratorModule::SpawnRandomPlanet()
 	{
 		// Initialize with blank variables
 		ProceduralPlanetActor->Initialize(true);
+
+		// Finish spawning at position
+		UGameplayStatics::FinishSpawningActor(ProceduralPlanetActor, FTransform::Identity);
+
+		// Calculate view bounds of the new generation and focus the camera on it
+		FBox ViewBounds = ProceduralPlanetActor->PlanetProvider->GetBounds().GetBox();
+		GEditor->MoveViewportCamerasToBox(ViewBounds, true);
+		// Set new actor as selection
+		GEditor->SelectNone(true, true, false);
+		GEditor->SelectActor(ProceduralPlanetActor, true, false, false, true);
 	}
 
-	// Finish spawning at position
-	UGameplayStatics::FinishSpawningActor(ProceduralPlanetActor, FTransform::Identity);
-
-	// Calculate view bounds of the new generation and focus the camera on it
-	FBox ViewBounds = ProceduralPlanetActor->PlanetProvider->GetBounds().GetBox();
-	GEditor->MoveViewportCamerasToBox(ViewBounds, true);
 }
 
 

@@ -14,8 +14,8 @@ UProceduralPlanetMeshProvider::UProceduralPlanetMeshProvider()
 void UProceduralPlanetMeshProvider::Initialize(UProceduralPlanetSettings* InProceduralPlanetSettings)
 {
 	ProceduralPlanetSettings = InProceduralPlanetSettings;
-	// Validate settings
-	Validate();
+	// IsValidSettings settings
+	IsValidSettings();
 
 	MinSegments = 32;
 	LODMultiplier = 0.75f;
@@ -46,10 +46,14 @@ void UProceduralPlanetMeshProvider::SetLODMultiplier(float InLODMultiplier)
 
 void UProceduralPlanetMeshProvider::Initialize_Implementation()
 {
-	Validate();
+	if (!IsValidSettings()) return;
 
 	// Setup material
-	SetupMaterialSlot(0, FName("Sphere Base"), ProceduralPlanetSettings->MaterialSettings->SphereMaterial);
+	UProceduralPlanetMaterialSettings* Temp = ProceduralPlanetSettings->MaterialSettings;
+	if (Temp)
+	{
+		SetupMaterialSlot(0, FName("Sphere Base"), Temp->SphereMaterial);
+	}
 
 	// Setup LODs
 	TArray<FRuntimeMeshLODProperties> LODs;
@@ -83,8 +87,14 @@ bool UProceduralPlanetMeshProvider::GetSectionMeshForLOD_Implementation(int32 LO
 	// We should only ever be queried for section 0
 	check(SectionId == 0 && LODIndex <= MaxLOD);
 
+	if (!IsValidSettings()) return false;
+
 	// Setup material
-	SetupMaterialSlot(0, FName("Sphere Base"), ProceduralPlanetSettings->MaterialSettings->SphereMaterial);
+	UProceduralPlanetMaterialSettings* Temp = ProceduralPlanetSettings->MaterialSettings;
+	if (Temp)
+	{
+		SetupMaterialSlot(0, FName("Sphere Base"), Temp->SphereMaterial);
+	}
 
 	// Set segments for LOD
 	int32 Segments = GetSegmentsForLOD(LODIndex);
@@ -107,10 +117,10 @@ FRuntimeMeshCollisionSettings UProceduralPlanetMeshProvider::GetCollisionSetting
 // Get render bounds for planet
 FBoxSphereBounds UProceduralPlanetMeshProvider::GetBounds_Implementation()
 {
-	Validate();
+	IsValidSettings();
 	// Return bounds will encapsulate the planet with the heighest available point from noise layers
-	//float BoundsRadius = ProceduralPlanetSettings->Radius + ProceduralPlanetSettings->GetHeightAt3DPointMax();
-	return FBoxSphereBounds(FSphere(FVector::ZeroVector, 300.0f));
+	float BoundsRadius = ProceduralPlanetSettings->Radius + ProceduralPlanetSettings->GetHeightAt3DPointMax();
+	return FBoxSphereBounds(FSphere(FVector::ZeroVector, BoundsRadius));
 	
 }
 
@@ -121,7 +131,7 @@ bool UProceduralPlanetMeshProvider::IsThreadSafe_Implementation()
 
 int32 UProceduralPlanetMeshProvider::GetMaxNumberOfLODs()
 {
-	Validate();
+	if (!IsValidSettings()) return 1;
 	FScopeLock Lock(&PropertySyncRoot);
 
 	int32 MaxLODs = 1;
@@ -159,7 +169,7 @@ float UProceduralPlanetMeshProvider::CalculateScreenSize(int32 LODIndex)
 
 int32 UProceduralPlanetMeshProvider::GetSegmentsForLOD(int32 LODIndex)
 {
-	Validate();
+	IsValidSettings();
 	// Get segments for required LOD
 	int32 Segments = ProceduralPlanetSettings->Resolution;
 	if (LODIndex < MaxLOD)
@@ -179,13 +189,14 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 Segments, FRuntimeMeshRe
 	int32 TrisOrder[6] = { 0, 1, Segments + 1, 1, Segments + 2, Segments + 1 };
 	int32 SphereRadius = PlanetSettings->Radius;
 	float MaxHeight = PlanetSettings->GetHeightAt3DPointMax();
+	UProceduralPlanetMaterialSettings* MaterialSettings = PlanetSettings->MaterialSettings;
 
-	GEngine->AddOnScreenDebugMessage(
-		0,
-		2.0f,
-		FColor::Red,
-		FString::Printf(TEXT("MaxHeight : %f"), MaxHeight)
-	);
+	//GEngine->AddOnScreenDebugMessage(
+	//	0,
+	//	2.0f,
+	//	FColor::Red,
+	//	FString::Printf(TEXT("MaxHeight : %f"), MaxHeight)
+	//);
 
 	//Set array size
 	LatitudeVerts.SetNumUninitialized(Segments + 1);
@@ -221,7 +232,11 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 Segments, FRuntimeMeshRe
 				double NoiseValue = PlanetSettings->GetHeightAt3DPointForAllLayers(Vector);
 
 				Position *= (SphereRadius + NoiseValue);
-				VertexColor = PlanetSettings->MaterialSettings->GetVertexColorFor3DHeight(NoiseValue, MaxHeight);
+				if (MaterialSettings)
+				{
+					VertexColor = PlanetSettings->MaterialSettings->GetVertexColorFor3DHeight(NoiseValue, MaxHeight);
+
+				}
 			}
 			// Multiply by radius to get ground point
 			else
@@ -265,14 +280,14 @@ void UProceduralPlanetMeshProvider::UpdateMeshParameters(bool bAffectsCollision)
 	}
 }
 
-void UProceduralPlanetMeshProvider::Validate()
+bool UProceduralPlanetMeshProvider::IsValidSettings()
 {
 	// If not initialized
 	if (!ProceduralPlanetSettings)
 	{
 		// Log out 
 		UE_LOG(LogTemp, Verbose, TEXT("RMC ProceduralPlanetProvider Initialization for Object: ProceduralPlanetSettings object is uninitialized. Object is being destroyed."));
-		// Destroy provider
-		//BeginDestroy();
+		return false;
 	}
+	return true;
 }

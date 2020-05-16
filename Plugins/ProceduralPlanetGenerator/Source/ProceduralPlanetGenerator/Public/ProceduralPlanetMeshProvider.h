@@ -67,7 +67,7 @@ private:
 	static bool GetSphereMesh(int32 Segments, FRuntimeMeshRenderableMeshData& MeshData, UProceduralPlanetSettings* PlanetSettings);
 	// Updates mesh. Can also update collision. Collision shouldn't be updated during LOD changes as it will only ever take affect at LOD 0 anyway, so it's needless calculations.
 	void UpdateMeshParameters(bool bAffectsCollision);	
-	// Validates the ProceduralPlanetSettings object. Destroys this actor if uninitialized. Should be called from any functions accessing it
-	void Validate();
+	// Validates the ProceduralPlanetSettings object. Should be called from any functions accessing it
+	bool IsValidSettings();
 
 };

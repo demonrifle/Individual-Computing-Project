@@ -4,6 +4,7 @@
 #include "ProceduralPlanetActor.h"
 #include "Materials/Material.h"
 #include "..\Public\ProceduralPlanetActor.h"
+#include "Editor/EditorEngine.h"
 
 AProceduralPlanetActor::AProceduralPlanetActor()
 {
@@ -62,19 +63,36 @@ void AProceduralPlanetActor::Initialize(bool IsRandom)
 
 // This method should only be called when both provider and settings are initialized
 void AProceduralPlanetActor::UpdateSphere()
-{
+{	
+	// Register for undo
+	FString TransactionString = TEXT("Updating SPhere");
+	const TCHAR* Transaction = *TransactionString;
+	GEngine->BeginTransaction(Transaction, FText::FromString(TransactionString), this);
+
 	// Update noise if it exists
 	PlanetSettings->UpdateNoiseSettings();
 
 	// Mark provider for reconstruction
 	PlanetProvider->MarkAllLODsDirty();
 	PlanetProvider->MarkCollisionDirty();
+
+	// End undoable actions
+	GEngine->EndTransaction();
 }
 
 FReply AProceduralPlanetActor::Randomize()
-{
+
+{	// Register for undo
+	FString TransactionString = TEXT("Updating SPhere");
+	const TCHAR* Transaction = *TransactionString;
+	GEngine->BeginTransaction(Transaction, FText::FromString(TransactionString), this);
+
 	PlanetSettings->Randomize();
 	UpdateSphere();
+
+	// End undoable actions
+	GEngine->EndTransaction();
+
 	return FReply::Handled();
 }
 

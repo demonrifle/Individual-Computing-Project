@@ -8,9 +8,9 @@ UNoiseLayer::UNoiseLayer()
 {
 	LayerVisibility = true;
 	Seed = 1337;
-	Frequency = 0.02f;
-	Amplitude = 200.0f;
-	ElevationReduction = 0.f;
+	Frequency = 0.50f;
+	Amplitude = 50.0f;
+	ElevationReduction = 20.f;
 	CentreOffset = FVector(0.f, 0.f, 0.f);
 	IsInverted = false;
 }
@@ -200,9 +200,6 @@ UValueNoise* UValueNoise::GetRandomLayer(FRandomStream* Seed)
 	return Layer;
 }
 
-
-
-
 // Value Fractal Noise
 UValueFractalNoise::UValueFractalNoise() 
 {
@@ -282,7 +279,6 @@ UValueFractalNoise * UValueFractalNoise::GetRandomLayer(FRandomStream * Seed)
 
 	return Layer;
 }
-
 
 
 // Perlin Noise

@@ -5,39 +5,52 @@
 
 UProceduralPlanetMaterialSettings::UProceduralPlanetMaterialSettings()
 	:SphereMaterial(nullptr),
+
 	Texture1(nullptr),
+	Texture1Height(0.25f),
+	Texture1Tiling(FVector2D(1.f, 1.f)),
+
 	Texture2(nullptr),
+	Texture2Height(0.50f),
+	Texture2Tiling(FVector2D(1.f, 1.f)),
+
 	Texture3(nullptr),
+	Texture3Height(0.75f),
+	Texture3Tiling(FVector2D(1.f, 1.f)),
+
 	Texture4(nullptr),
-	Texture1Height(0.f),
-	Texture2Height(0.f),
-	Texture3Height(0.f),
-	Texture4Height(0.f),
-	Texture1Tiling(FVector2D(0.f,0.f)),
-	Texture2Tiling(FVector2D(0.f, 0.f)),
-	Texture3Tiling(FVector2D(0.f, 0.f)),
-	Texture4Tiling(FVector2D(0.f, 0.f))
+	Texture4Height(1.00f),
+	Texture4Tiling(FVector2D(1.f, 1.f))
 {
 }
 
 void UProceduralPlanetMaterialSettings::Initialize()
 {
-	UMaterial* PlanetMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/ProceduralPlanetMaterial"));
+	UMaterial* PlanetMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/StarterContent/Materials/M_ProceduralPlanetMaterial"));
+	
+	MaterialInstance = UMaterialInstanceDynamic::Create(PlanetMaterial, this);
+
 	Texture1 = LoadObject<UTexture>(nullptr, TEXT("/Game/StarterContent/Textures/T_Water_D"));
 	Texture2 = LoadObject<UTexture>(nullptr, TEXT("/Game/StarterContent/Textures/T_Sand_D"));
 	Texture3 = LoadObject<UTexture>(nullptr, TEXT("/Game/StarterContent/Textures/T_Ground_Grass_D"));
 	Texture4 = LoadObject<UTexture>(nullptr, TEXT("/Game/StarterContent/Textures/T_Snow_D"));
-	MaterialInstance = UMaterialInstanceDynamic::Create(PlanetMaterial, this);
+	DefaultTexture = LoadObject<UTexture>(nullptr, TEXT("/Engine/EngineResources/WhiteSquareTexture"));
+
 	Update();
 	SphereMaterial = MaterialInstance;
 }
 
 void UProceduralPlanetMaterialSettings::Update()
 {
-	MaterialInstance->SetTextureParameterValue(FName("Texture1"), Texture1);
-	MaterialInstance->SetTextureParameterValue(FName("Texture2"), Texture2);
-	MaterialInstance->SetTextureParameterValue(FName("Texture3"), Texture3);
-	MaterialInstance->SetTextureParameterValue(FName("Texture4"), Texture4);
+	if (Texture1)	MaterialInstance->SetTextureParameterValue(FName("Texture1"), Texture1);
+	else MaterialInstance->SetTextureParameterValue(FName("Texture1"), DefaultTexture);
+	if (Texture2)	MaterialInstance->SetTextureParameterValue(FName("Texture2"), Texture2);
+	else MaterialInstance->SetTextureParameterValue(FName("Texture2"), DefaultTexture);
+	if (Texture3)	MaterialInstance->SetTextureParameterValue(FName("Texture3"), Texture3);
+	else MaterialInstance->SetTextureParameterValue(FName("Texture3"), DefaultTexture);
+	if (Texture4)	MaterialInstance->SetTextureParameterValue(FName("Texture4"), Texture4);
+	else MaterialInstance->SetTextureParameterValue(FName("Texture4"), DefaultTexture);
+
 	MaterialInstance->SetScalarParameterValue(FName("Texture1UTiling"), Texture1Tiling.X);
 	MaterialInstance->SetScalarParameterValue(FName("Texture1VTiling"), Texture1Tiling.Y);
 	MaterialInstance->SetScalarParameterValue(FName("Texture2UTiling"), Texture2Tiling.X);
@@ -66,14 +79,10 @@ void UProceduralPlanetMaterialSettings::Randomize(FRandomStream* Seed)
 		Texture3Height = Seed->FRandRange(0.f, 1.0f);
 		Texture4Height = Seed->FRandRange(0.f, 1.0f);
 	}
-	Texture1Tiling.X = Seed->FRandRange(1.0f, 5.0f);
-	Texture1Tiling.Y = Seed->FRandRange(1.0f, 5.0f);
-	Texture2Tiling.X = Seed->FRandRange(1.0f, 5.0f);
-	Texture2Tiling.Y = Seed->FRandRange(1.0f, 5.0f);
-	Texture3Tiling.X = Seed->FRandRange(1.0f, 5.0f);
-	Texture3Tiling.Y = Seed->FRandRange(1.0f, 5.0f);
-	Texture4Tiling.X = Seed->FRandRange(1.0f, 5.0f);
-	Texture4Tiling.Y = Seed->FRandRange(1.0f, 5.0f);
+	Texture1Tiling.X = Texture1Tiling.Y = Seed->FRandRange(1.0f, 5.0f);
+	Texture2Tiling.X = Texture2Tiling.Y = Seed->FRandRange(1.0f, 5.0f);
+	Texture3Tiling.X = Texture3Tiling.Y = Seed->FRandRange(1.0f, 5.0f);
+	Texture4Tiling.X = Texture4Tiling.Y = Seed->FRandRange(1.0f, 5.0f);
 	Update();
 }
 

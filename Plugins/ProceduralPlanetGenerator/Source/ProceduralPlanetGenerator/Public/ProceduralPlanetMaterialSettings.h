@@ -67,6 +67,7 @@ public :
 		FVector2D Texture4Tiling;
 private:
 	UMaterialInstanceDynamic* MaterialInstance;
+	UTexture* DefaultTexture;
 public :
 	UProceduralPlanetMaterialSettings();
 	// Initialize all variables

@@ -24,7 +24,7 @@ public:
 
 
 	UPROPERTY(EditAnywhere, Instanced, Category = "Planet Settings")
-		UProceduralPlanetSettings* PlanetSettings;
+		UProceduralPlanetSettings PlanetSettings;
 
 	UProceduralPlanetMeshProvider* PlanetProvider;
 

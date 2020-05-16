@@ -46,7 +46,7 @@ void UProceduralPlanetSettings::Randomize()
 	Seed = FRandomStream(NewSeed);
 
 	Radius = Seed.FRandRange(200.0f, 500.0f);
-	Resolution = Seed.RandRange(50, 300);
+	Resolution = Seed.RandRange(50, 200);
 
 	MaterialSettings->Randomize(&Seed);
 
@@ -65,7 +65,7 @@ void UProceduralPlanetSettings::RandomizeForSeed(int32 NewSeed)
 	Seed = FRandomStream(NewSeed);
 
 	Radius = Seed.FRandRange(200.0f, 500.0f);
-	Resolution = Seed.RandRange(100, 300);
+	Resolution = Seed.RandRange(50, 200);
 
 	// Randomize material properties
 	MaterialSettings->Randomize(&Seed);

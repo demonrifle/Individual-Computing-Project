@@ -13,7 +13,7 @@
 
 // Plante settings class. Combines atomic and complex settings
 UCLASS(EditInlineNew, DefaultToInstanced)
-class PROCEDURALPLANETGENERATOR_API UProceduralPlanetSettings : public UActorComponent
+class PROCEDURALPLANETGENERATOR_API UProceduralPlanetSettings : public UObject
 {
 	GENERATED_BODY()
 public:

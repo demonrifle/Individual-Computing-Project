@@ -14,6 +14,8 @@
 
 #include "LevelEditor.h"
 
+DEFINE_LOG_CATEGORY(ProceduralPlanetModule);
+
 static const FName ProceduralPlanetGeneratorTabName("ProceduralPlanetGenerator");
 
 #define LOCTEXT_NAMESPACE "FProceduralPlanetGeneratorModule"
@@ -127,8 +129,8 @@ void FProceduralPlanetGeneratorModule::SpawnBlankPlanet()
 		UGameplayStatics::FinishSpawningActor(ProceduralPlanetActor, FTransform::Identity);
 
 		// Calculate view bounds of the new generation and focus the camera on it
-		//FBox ViewBounds = ProceduralPlanetActor->PlanetProvider->GetBounds().GetBox();
-		//GEditor->MoveViewportCamerasToBox(ViewBounds, true);
+		FBox ViewBounds = ProceduralPlanetActor->PlanetProvider->GetBounds().GetBox();
+		GEditor->MoveViewportCamerasToBox(ViewBounds, true);
 		// Set new actor as selection
 		GEditor->SelectNone(true, true, false);
 		GEditor->SelectActor(ProceduralPlanetActor, true, false, false, true);
@@ -157,8 +159,8 @@ void FProceduralPlanetGeneratorModule::SpawnRandomPlanet()
 		UGameplayStatics::FinishSpawningActor(ProceduralPlanetActor, FTransform::Identity);
 
 		// Calculate view bounds of the new generation and focus the camera on it
-		//FBox ViewBounds = ProceduralPlanetActor->PlanetProvider->GetBounds().GetBox();
-		G//Editor->MoveViewportCamerasToBox(ViewBounds, true);
+		FBox ViewBounds = ProceduralPlanetActor->PlanetProvider->GetBounds().GetBox();
+		GEditor->MoveViewportCamerasToBox(ViewBounds, true);
 		// Set new actor as selection
 		GEditor->SelectNone(true, true, false);
 		GEditor->SelectActor(ProceduralPlanetActor, true, false, false, true);

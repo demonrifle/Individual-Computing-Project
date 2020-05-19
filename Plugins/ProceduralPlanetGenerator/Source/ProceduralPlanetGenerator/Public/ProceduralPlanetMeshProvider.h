@@ -4,10 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "RuntimeMeshProvider.h"
+#include "ProceduralPlanetGenerator.h"
 #include "ProceduralPlanetSettings.h"
 #include "NoiseLayer.h"
+#include "UtilityTimer.h"
 
 #include "ProceduralPlanetMeshProvider.generated.h"
+
+DECLARE_STATS_GROUP(TEXT("PlanetActor"), STATGROUP_PlanetProvider, STATGROUP_ProceduralPlanetModule);
 
 
 // This class extends the RMC provider behaviour to build the mesh for a procedural planet
@@ -22,13 +26,21 @@ private:
 
 	// Settings object to use for generation
 	// This should always be initialized before use
+	UPROPERTY()
 		UProceduralPlanetSettings* ProceduralPlanetSettings;
 
 		// Internal variables for setting up an LOD system. Only multiplier is editable with a setter
+	UPROPERTY()
 		int32 MinSegments;
+		UPROPERTY()
 		int32 MaxLOD;
+		UPROPERTY()
 		float LODMultiplier;
 
+		UtilityTimer Timer;
+
+		double average;
+		int number;
 
 public:
 
@@ -38,6 +50,10 @@ public:
 	// Initialization Method. Should always be called before attemtping to use the object.
 	// Never call with a null pointer as it will generate nothing or crash.
 	void Initialize(UProceduralPlanetSettings* InProceduralPlanetSettings);
+	void UpdatePlanet();
+
+	//// Threadsafe getter
+	//UProceduralPlanetSettings GetProceduralPlanetSettings() const;
 
 	float GetLODMultiplier() const;
 	void SetLODMultiplier(float InLODMultiplier);
@@ -64,7 +80,7 @@ private:
 
 	// Calculates the mesh for the sphere and adds to MeshData.
 	// @param Segments Segments are used even thought the resolution can already be found in the PlanetSettings object since it is different for LODs
-	bool GetSphereMesh(int32 Segments, FRuntimeMeshRenderableMeshData& MeshData);
+	bool GetSphereMesh(int32 Segments, FRuntimeMeshRenderableMeshData& MeshData);// , UProceduralPlanetSettings PlanetSettings);
 	// Updates mesh. Can also update collision. Collision shouldn't be updated during LOD changes as it will only ever take affect at LOD 0 anyway, so it's needless calculations.
 	void UpdateMeshParameters(bool bAffectsCollision);	
 	// Validates the ProceduralPlanetSettings object. Should be called from any functions accessing it

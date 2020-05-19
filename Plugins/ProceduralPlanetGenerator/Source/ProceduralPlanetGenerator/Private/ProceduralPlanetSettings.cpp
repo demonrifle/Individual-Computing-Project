@@ -11,10 +11,10 @@ UProceduralPlanetSettings::UProceduralPlanetSettings()
 void UProceduralPlanetSettings::Initialize(bool IsRandom)
 {
 	MaterialSettings = NewObject<UProceduralPlanetMaterialSettings>(this);
-	MaterialSettings->Initialize();
 	
 	if (IsRandom)
 	{
+		MaterialSettings->Initialize();
 		Seed = FRandomStream(FMath::Rand());
 		Randomize();
 	}
@@ -83,6 +83,7 @@ void UProceduralPlanetSettings::RandomizeForSeed(int32 NewSeed)
 double UProceduralPlanetSettings::GetHeightAt3DPointForAllLayers(DVector Vector)
 {
 	double NoiseValue = 0.f;
+	PerLayerTimer.Tick();
 	for (UNoiseLayer* NoiseLayer : NoiseSettings)
 	{
 		if (NoiseLayer)
@@ -90,6 +91,7 @@ double UProceduralPlanetSettings::GetHeightAt3DPointForAllLayers(DVector Vector)
 			NoiseValue += NoiseLayer->GetHeightAt3DPoint(Vector);
 		}
 	}
+	PerLayerTimer.Tock();
 	return NoiseValue;
 }
 
@@ -122,6 +124,18 @@ FColor UProceduralPlanetSettings::GetVertexColorFor3DHeight(float Height, float 
 		return MaterialSettings->GetVertexColorFor3DHeight(Height, MaxHeight);
 	}
 	return FColor(0, 0, 0, 0);
+}
+
+void UProceduralPlanetSettings::PrintLayerAverageSpeed()
+{
+	if (NoiseSettings.Num() != 0)
+	{
+		UNoiseLayer* NoiseLayer = NoiseSettings[0];
+		if (NoiseLayer)
+		{
+			UE_LOG(ProceduralPlanetModule, Verbose, TEXT("Average speed for Layer : %.12dmilliseconds"), NoiseLayer->LayerTimer.Average);
+		}
+	}
 }
 
 #if WITH_EDITOR

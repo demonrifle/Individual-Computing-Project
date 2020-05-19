@@ -20,48 +20,51 @@ UProceduralPlanetMaterialSettings::UProceduralPlanetMaterialSettings()
 
 	Texture4(nullptr),
 	Texture4Height(1.00f),
-	Texture4Tiling(FVector2D(1.f, 1.f)),
-
-	CanEditSettings(false)
+	Texture4Tiling(FVector2D(1.f, 1.f))
 {
-}
+	DefaultMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Engine/EngineMaterials/DefaultMaterial"));
+	DefaultTexture = LoadObject<UTexture>(nullptr, TEXT("/Engine/EngineResources/WhiteSquareTexture"));
+	SphereMaterial = DefaultMaterial;
+	Texture1 = Texture2 = Texture3 = Texture4 = DefaultTexture;
 
-void UProceduralPlanetMaterialSettings::Initialize()
-{
+
 	PlanetMaterial = LoadObject<UMaterial>(nullptr, TEXT("/Game/StarterContent/Materials/M_ProceduralPlanetMaterial"));
-	
-	MaterialInstance = UMaterialInstanceDynamic::Create(PlanetMaterial, this);
-
 	Texture1 = LoadObject<UTexture>(nullptr, TEXT("/Game/StarterContent/Textures/T_Water_D"));
 	Texture2 = LoadObject<UTexture>(nullptr, TEXT("/Game/StarterContent/Textures/T_Sand_D"));
 	Texture3 = LoadObject<UTexture>(nullptr, TEXT("/Game/StarterContent/Textures/T_Ground_Grass_D"));
 	Texture4 = LoadObject<UTexture>(nullptr, TEXT("/Game/StarterContent/Textures/T_Snow_D"));
-	DefaultTexture = LoadObject<UTexture>(nullptr, TEXT("/Engine/EngineResources/WhiteSquareTexture"));
+}
 
+void UProceduralPlanetMaterialSettings::Initialize()
+{	
+	MaterialInstance = UMaterialInstanceDynamic::Create(PlanetMaterial, this);
+	
 	Update();
 	SphereMaterial = MaterialInstance;
-	CanEditSettings = true;
 }
 
 void UProceduralPlanetMaterialSettings::Update()
 {
-	if (Texture1)	MaterialInstance->SetTextureParameterValue(FName("Texture1"), Texture1);
-	else MaterialInstance->SetTextureParameterValue(FName("Texture1"), DefaultTexture);
-	if (Texture2)	MaterialInstance->SetTextureParameterValue(FName("Texture2"), Texture2);
-	else MaterialInstance->SetTextureParameterValue(FName("Texture2"), DefaultTexture);
-	if (Texture3)	MaterialInstance->SetTextureParameterValue(FName("Texture3"), Texture3);
-	else MaterialInstance->SetTextureParameterValue(FName("Texture3"), DefaultTexture);
-	if (Texture4)	MaterialInstance->SetTextureParameterValue(FName("Texture4"), Texture4);
-	else MaterialInstance->SetTextureParameterValue(FName("Texture4"), DefaultTexture);
+	if (MaterialInstance)
+	{
+		if (Texture1)	MaterialInstance->SetTextureParameterValue(FName("Texture1"), Texture1);
+		else MaterialInstance->SetTextureParameterValue(FName("Texture1"), DefaultTexture);
+		if (Texture2)	MaterialInstance->SetTextureParameterValue(FName("Texture2"), Texture2);
+		else MaterialInstance->SetTextureParameterValue(FName("Texture2"), DefaultTexture);
+		if (Texture3)	MaterialInstance->SetTextureParameterValue(FName("Texture3"), Texture3);
+		else MaterialInstance->SetTextureParameterValue(FName("Texture3"), DefaultTexture);
+		if (Texture4)	MaterialInstance->SetTextureParameterValue(FName("Texture4"), Texture4);
+		else MaterialInstance->SetTextureParameterValue(FName("Texture4"), DefaultTexture);
 
-	MaterialInstance->SetScalarParameterValue(FName("Texture1UTiling"), Texture1Tiling.X);
-	MaterialInstance->SetScalarParameterValue(FName("Texture1VTiling"), Texture1Tiling.Y);
-	MaterialInstance->SetScalarParameterValue(FName("Texture2UTiling"), Texture2Tiling.X);
-	MaterialInstance->SetScalarParameterValue(FName("Texture2VTiling"), Texture2Tiling.Y);
-	MaterialInstance->SetScalarParameterValue(FName("Texture3UTiling"), Texture3Tiling.X);
-	MaterialInstance->SetScalarParameterValue(FName("Texture3VTiling"), Texture3Tiling.Y);
-	MaterialInstance->SetScalarParameterValue(FName("Texture4UTiling"), Texture4Tiling.X);
-	MaterialInstance->SetScalarParameterValue(FName("Texture4VTiling"), Texture4Tiling.Y);
+		MaterialInstance->SetScalarParameterValue(FName("Texture1UTiling"), Texture1Tiling.X);
+		MaterialInstance->SetScalarParameterValue(FName("Texture1VTiling"), Texture1Tiling.Y);
+		MaterialInstance->SetScalarParameterValue(FName("Texture2UTiling"), Texture2Tiling.X);
+		MaterialInstance->SetScalarParameterValue(FName("Texture2VTiling"), Texture2Tiling.Y);
+		MaterialInstance->SetScalarParameterValue(FName("Texture3UTiling"), Texture3Tiling.X);
+		MaterialInstance->SetScalarParameterValue(FName("Texture3VTiling"), Texture3Tiling.Y);
+		MaterialInstance->SetScalarParameterValue(FName("Texture4UTiling"), Texture4Tiling.X);
+		MaterialInstance->SetScalarParameterValue(FName("Texture4VTiling"), Texture4Tiling.Y);
+	}
 }
 
 
@@ -110,12 +113,26 @@ FColor UProceduralPlanetMaterialSettings::GetVertexColorFor3DHeight(float Height
 	}
 	else if (VertexScale <= Texture4Height)
 	{
-
 		VertexColor = FColor(0, 0, VisibleTexture, 0);
 	}
+	else VertexColor = GetVertexColorForHighestTexture();
 	return VertexColor;
 }
 
+FColor UProceduralPlanetMaterialSettings::GetVertexColorForHighestTexture()
+{
+	FColor VertexColor;
+	//Get Highest Texture Value
+	float Max = FMath::Max(Texture1Height,
+					FMath::Max(Texture2Height,
+						FMath::Max(Texture3Height,Texture3Height)));
+
+	Max == Texture1Height ? VertexColor = FColor(0, 0, 0, 0) :
+		Max == Texture2Height ? VertexColor = FColor(255, 0, 0, 0) :
+			Max == Texture3Height ? VertexColor = FColor(0, 255, 0, 0) :
+										VertexColor = FColor(0, 0, 255, 0);
+	return VertexColor;
+}
 
 #if WITH_EDITOR
 void UProceduralPlanetMaterialSettings::PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent)
@@ -126,12 +143,18 @@ void UProceduralPlanetMaterialSettings::PostEditChangeProperty(FPropertyChangedE
 		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
 		if (PropertyName == "SphereMaterial")
 		{
-			if (SphereMaterial->GetMaterial()->GetName() == PlanetMaterial->GetName())
+			if (SphereMaterial)
 			{
-				CanEditSettings = true;
-				Initialize();
+				if (SphereMaterial->GetMaterial()->GetName() == PlanetMaterial->GetName())
+				{
+					Initialize();
+				}
 			}
-			else CanEditSettings = false;
+			else
+			{
+				MaterialInstance = UMaterialInstanceDynamic::Create(PlanetMaterial, this);
+				SphereMaterial = MaterialInstance;
+			}
 		}
 	}
 

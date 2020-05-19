@@ -13,7 +13,7 @@
 /**
  * 
  */
-UCLASS(DefaultToInstanced, EditInlineNew)
+UCLASS(DefaultToInstanced)
 class PROCEDURALPLANETGENERATOR_API UProceduralPlanetMaterialSettings : public UObject
 {
 	GENERATED_BODY()
@@ -30,7 +30,7 @@ public :
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "1"))
 		float Texture1Height;
 	// Controls UV Tiling
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))
 		FVector2D Texture1Tiling;
 
 	// Procedural Planet Texture2
@@ -41,7 +41,7 @@ public :
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "1"))
 		float Texture2Height;
 	// Controls UV Tiling
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))
 		FVector2D Texture2Tiling;
 
 	// Procedural Planet Texture3
@@ -52,7 +52,7 @@ public :
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "1"))
 		float Texture3Height;
 	// Controls UV Tiling
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))
 		FVector2D Texture3Tiling;
 
 	// Procedural Planet Texture4
@@ -63,13 +63,13 @@ public :
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "1"))
 		float Texture4Height;
 	// Controls UV Tiling
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))
 		FVector2D Texture4Tiling;
 private:
 	UMaterial* PlanetMaterial;
+	UMaterial* DefaultMaterial;
 	UMaterialInstanceDynamic* MaterialInstance;
 	UTexture* DefaultTexture;
-	bool CanEditSettings;
 public :
 	UProceduralPlanetMaterialSettings();
 	// Initialize all variables
@@ -85,6 +85,7 @@ public :
 	// Returns the vertex coloring for a given 3D point based on percentage to top
 	// Made for 4-texture height blending
 	FColor GetVertexColorFor3DHeight(float Height, float MaxHeight);
+	FColor GetVertexColorForHighestTexture();
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent) override;

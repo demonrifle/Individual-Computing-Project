@@ -7,6 +7,8 @@
 #include "Modules/ModuleManager.h"
 #include "Engine.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(ProceduralPlanetModule, Verbose, All);
+
 class FToolBarBuilder;
 class FMenuBuilder;
 

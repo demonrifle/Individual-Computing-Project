@@ -11,7 +11,7 @@
 #include "DVector.h"
 #include "Math/RandomStream.h"
 #include "Engine.h"
-
+#include "UtilityTimer.h"
 #include "NoiseLayer.generated.h"
 
 
@@ -74,7 +74,7 @@ enum class UNoiseCellularReturnType : uint8
 
 // Abstract Noise Class to be inheritted from
 
-UCLASS(Abstract, DefaultToInstanced)
+UCLASS(DefaultToInstanced)
 class NOISEGENERATOR_API UNoiseLayer : public UObject
 {
 	GENERATED_BODY()
@@ -84,17 +84,16 @@ protected:
 		FastNoise Noise;
 	// Type of noise
 		UNoiseType NoiseType;
-
 public:
 	// Toggles the visibiltiy of the layer 
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 1))
 		bool LayerVisibility;
 	// Seed value for recreating pseudo-random noise
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 1, ClampMin = "0"))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 1, ClampMin = "0", ClampMax ="100000"))
 		int Seed;
 	// Frequency is the base spatial value for noise. 
 	// Determines how far apart noise is sampled. 
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Seed", ClampMin = "0.01", ClampMax = "10"))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Seed", ClampMin = "0.01", ClampMax = "20"))
 		float Frequency;
 	// The Amplitude sets the height of the noise.
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "Frequency", ClampMin = "0"))
@@ -108,6 +107,8 @@ public:
 	// Inverts noise values setting highs to lows and vice versa
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayAfter = "CentreOffset", DisplayName = "Invert Noise"))
 		bool IsInverted;
+
+	UtilityTimer LayerTimer;
 
 public:
 	// Default constructor 
@@ -136,7 +137,7 @@ public:
 
 
 //Abstract Fractal noise class to be inherited from
-UCLASS(Abstract)
+UCLASS()
 class UFractalNoise : public UNoiseLayer
 {
 	GENERATED_BODY()
@@ -152,7 +153,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "0", ClampMax = "1"))
 		float Gain;
 	// Octaves determine the number of levels of detail you want you perlin noise to have.
-	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "1", ClampMax = "10"))
+	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings",  meta = (DisplayPriority = 2, ClampMin = "1", ClampMax = "9"))
 		int Octaves;
 	// FractalType determines the fractal type of generation
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
@@ -272,7 +273,7 @@ public:
 	void UpdateValues();
 
 	// Jitter the maximum distance a cellular point can move from its grid position
-	// Setting this high will make artifacts more common
+	// Setting this high will make artifacts more common, setting it at 10 001 causes strange forms
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2, ClampMin = "0"))
 		float Jitter;
 	// Sets distance function used in cellular noise calculations
@@ -281,8 +282,6 @@ public:
 	// Sets return type from cellular noise calculations
 	UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
 		UNoiseCellularReturnType CellularReturnType;
-	//UPROPERTY(EditAnywhere, Category = "Noise Layer Settings", meta = (DisplayPriority = 2))
-	//	UNoiseLayer* CellularLookupNoise;
 
 
 	// Gets a randomized Cellular noise layer.

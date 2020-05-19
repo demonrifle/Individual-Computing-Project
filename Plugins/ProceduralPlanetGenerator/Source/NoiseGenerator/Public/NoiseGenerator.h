@@ -6,6 +6,9 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+
+DECLARE_LOG_CATEGORY_EXTERN(NoiseGeneratorModule, Verbose, All);
+
 // Noise Generator Module
 class FNoiseGeneratorModule : public IModuleInterface
 {

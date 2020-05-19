@@ -7,6 +7,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "RuntimeMeshActor.h"
+#include "ProceduralPlanetGenerator.h"
 #include "ProceduralPlanetMeshProvider.h"
 #include "ProceduralPlanetSettings.h"
 #include "NoiseLayer.h"
@@ -14,6 +15,7 @@
 
 #include "ProceduralPlanetActor.generated.h"
 
+DECLARE_STATS_GROUP(TEXT("PlanetActor"), STATGROUP_PlanetActor, STATGROUP_ProceduralPlanetModule);
 
 UCLASS()
 class PROCEDURALPLANETGENERATOR_API AProceduralPlanetActor : public ARuntimeMeshActor
@@ -21,12 +23,11 @@ class PROCEDURALPLANETGENERATOR_API AProceduralPlanetActor : public ARuntimeMesh
 	GENERATED_BODY()
 
 public:
-
-
-	//UPROPERTY(EditAnywhere, Instanced, Category = "Planet Settings")
-	//	UProceduralPlanetSettings* PlanetSettings;
-
-	//UProceduralPlanetMeshProvider* PlanetProvider;
+	
+	UPROPERTY(EditAnywhere, Category = "Planet Settings")
+		UProceduralPlanetSettings* PlanetSettings;
+	UPROPERTY()
+		UProceduralPlanetMeshProvider* PlanetProvider;
 
 protected:
 	// Called when the game starts or when spawned

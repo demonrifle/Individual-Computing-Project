@@ -9,6 +9,8 @@
 
 static const FName NoiseGeneratorTabName("NoiseGenerator");
 
+DEFINE_LOG_CATEGORY(NoiseGeneratorModule);
+
 #define LOCTEXT_NAMESPACE "FNoiseGeneratorModule"
 
 void FNoiseGeneratorModule::StartupModule()

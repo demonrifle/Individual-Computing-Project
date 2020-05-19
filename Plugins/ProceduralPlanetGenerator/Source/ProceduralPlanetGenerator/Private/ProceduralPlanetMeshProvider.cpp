@@ -5,6 +5,7 @@
 #include "DVector.h"
 #include "RuntimeMeshComponentPlugin.h"
 
+DECLARE_CYCLE_STAT(TEXT("Provider - Getting LOD Mesh Section"), STAT_PlanetProviderGetMeshSectionForLOD, STATGROUP_PlanetProvider);
 
 UProceduralPlanetMeshProvider::UProceduralPlanetMeshProvider()
 {
@@ -18,7 +19,7 @@ void UProceduralPlanetMeshProvider::Initialize(UProceduralPlanetSettings* InProc
 	IsValidSettings();
 
 	MinSegments = 32;
-	LODMultiplier = 0.75f;
+	LODMultiplier = 0.50;
 	MaxLOD = GetMaxNumberOfLODs() - 1;
 
 }
@@ -36,12 +37,19 @@ void UProceduralPlanetMeshProvider::SetLODMultiplier(float InLODMultiplier)
 	//If the LODMultiplier is greater than one, there'd be infinite LODs as it would diverge. (It's a geometric series)
 	if (InLODMultiplier >= 1)
 	{
-		UE_LOG(LogTemp, Error, TEXT("RMC Sphere Provider(%d): LODMultiplier was set greater than or equal to 1 ! Aborting ! Value : %f"), FPlatformTLS::GetCurrentThreadId(), InLODMultiplier);
+		LODMultiplier = 0.50f;
 		return;
 	}
 	LODMultiplier = InLODMultiplier;
 	UpdateMeshParameters(false);
 }
+
+//UProceduralPlanetSettings UProceduralPlanetMeshProvider::GetProceduralPlanetSettings() const
+//{
+//	FScopeLock Lock(&PropertySyncRoot);
+//	UProceduralPlanetSettings* Temp = ProceduralPlanetSettings;
+//	return Temp;
+//}
 
 
 void UProceduralPlanetMeshProvider::Initialize_Implementation()
@@ -78,21 +86,38 @@ void UProceduralPlanetMeshProvider::Initialize_Implementation()
 	}
 }
 
+void UProceduralPlanetMeshProvider::UpdatePlanet()
+{
+	LODMultiplier = 0.5;
+	//MaxLOD = GetMaxNumberOfLODs() - 1; 
+	MarkAllLODsDirty();
+	MarkCollisionDirty();
+}
+
 bool UProceduralPlanetMeshProvider::GetSectionMeshForLOD_Implementation(int32 LODIndex, int32 SectionId, FRuntimeMeshRenderableMeshData& MeshData)
 {
+	SCOPE_CYCLE_COUNTER(STAT_PlanetProviderGetMeshSectionForLOD);
+
 	// We should only ever be queried for section 0
 	check(SectionId == 0 && LODIndex <= MaxLOD);
 
 	if (!IsValidSettings()) return false;
-
+	Timer.Tick();
 	// Setup material
 	SetupMaterialSlot(0, FName("Sphere Base"), ProceduralPlanetSettings->GetSphereMaterial());
 
 	// Set segments for LOD
-	int32 Segments = GetSegmentsForLOD(LODIndex);
+	int32 LODSegments = GetSegmentsForLOD(LODIndex);
+
+	bool result = GetSphereMesh(LODSegments, MeshData);// , TempSettings);
+
+	UE_LOG(ProceduralPlanetModule, Verbose, TEXT("Generating Section Mesh for LOD %d with %d Segments took : %.6fms to update"), LODIndex, LODSegments, Timer.Tock());
+
+	
+	ProceduralPlanetSettings->PrintLayerAverageSpeed();
 
 	// Build up Section Mesh for LOD
-	return GetSphereMesh(Segments,  MeshData);
+	return result;
 }
 
 FRuntimeMeshCollisionSettings UProceduralPlanetMeshProvider::GetCollisionSettings_Implementation()
@@ -100,8 +125,8 @@ FRuntimeMeshCollisionSettings UProceduralPlanetMeshProvider::GetCollisionSetting
 	FRuntimeMeshCollisionSettings Settings;
 	Settings.bUseAsyncCooking = false;
 	Settings.bUseComplexAsSimple = false;
-
-	Settings.Spheres.Emplace(ProceduralPlanetSettings->Radius);
+	if (!IsValidSettings()) Settings.Spheres.Emplace(300.0f);
+	else Settings.Spheres.Emplace(ProceduralPlanetSettings->Radius);
 
 	return Settings;
 }
@@ -109,7 +134,7 @@ FRuntimeMeshCollisionSettings UProceduralPlanetMeshProvider::GetCollisionSetting
 // Get render bounds for planet
 FBoxSphereBounds UProceduralPlanetMeshProvider::GetBounds_Implementation()
 {
-	IsValidSettings();
+	if (!IsValidSettings()) return FBoxSphereBounds(FSphere(FVector::ZeroVector, 300.0f));
 	// Return bounds will encapsulate the planet with the heighest available point from noise layers
 	float BoundsRadius = ProceduralPlanetSettings->Radius + ProceduralPlanetSettings->GetHeightAt3DPointMax();
 	return FBoxSphereBounds(FSphere(FVector::ZeroVector, BoundsRadius));
@@ -127,7 +152,7 @@ int32 UProceduralPlanetMeshProvider::GetMaxNumberOfLODs()
 	FScopeLock Lock(&PropertySyncRoot);
 
 	int32 MaxLODs = 1;
-	float CurrentSegments = ProceduralPlanetSettings->Resolution;
+	float CurrentSegments = FMath::Abs(ProceduralPlanetSettings->Resolution);
 
 	// Up to MaxLODs - 8
 	while (MaxLODs < RUNTIMEMESH_MAXLODS)
@@ -142,9 +167,9 @@ int32 UProceduralPlanetMeshProvider::GetMaxNumberOfLODs()
 			MaxLODs++;
 			break;
 		}
-
 		//Else increase MaxLODs and start again
 		MaxLODs++;
+
 	}
 
 	return MaxLODs;
@@ -163,7 +188,7 @@ int32 UProceduralPlanetMeshProvider::GetSegmentsForLOD(int32 LODIndex)
 {
 	IsValidSettings();
 	// Get segments for required LOD
-	int32 Segments = ProceduralPlanetSettings->Resolution;
+	int32 Segments = FMath::Abs(ProceduralPlanetSettings->Resolution);
 	if (LODIndex < MaxLOD)
 	{
 		return 	Segments *= FMath::Pow(LODMultiplier, LODIndex);
@@ -173,7 +198,7 @@ int32 UProceduralPlanetMeshProvider::GetSegmentsForLOD(int32 LODIndex)
 }
 
 // Calculate actual Mesh data.
-bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 Segments, FRuntimeMeshRenderableMeshData& MeshData)
+bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 Segments, FRuntimeMeshRenderableMeshData& MeshData)//, UProceduralPlanetSettings PlanetSettings)
 {
 	TArray<FVector> LatitudeVerts;
 	TArray<FVector> TangentVerts;
@@ -181,13 +206,6 @@ bool UProceduralPlanetMeshProvider::GetSphereMesh(int32 Segments, FRuntimeMeshRe
 	int32 TrisOrder[6] = { 0, 1, Segments + 1, 1, Segments + 2, Segments + 1 };
 	int32 SphereRadius = ProceduralPlanetSettings->Radius;
 	float MaxHeight = ProceduralPlanetSettings->GetHeightAt3DPointMax();
-
-	//GEngine->AddOnScreenDebugMessage(
-	//	0,
-	//	2.0f,
-	//	FColor::Red,
-	//	FString::Printf(TEXT("MaxHeight : %f"), MaxHeight)
-	//);
 
 	//Set array size
 	LatitudeVerts.SetNumUninitialized(Segments + 1);

@@ -22,6 +22,7 @@ double UNoiseLayer::GetHeightAt3DPoint(float X, float Y, float Z)
 
 	// Check if layer should be visible
 	if (!LayerVisibility) return 0;
+	LayerTimer.Tick();
 
 	DVector Vertex = DVector(FVector(X, Y, Z));
 
@@ -40,7 +41,8 @@ double UNoiseLayer::GetHeightAt3DPoint(float X, float Y, float Z)
 
 	// Return the calculated value ot 0 of lower than that after elevation reduction
 	Value = fmax(0.f, Value);
-
+	
+	LayerTimer.Tock();
 	return Value;
 }
 
@@ -51,6 +53,7 @@ double UNoiseLayer::GetHeightAt3DPoint(DVector Vertex)
 
 	// Check if layer should be visible
 	if (!LayerVisibility) return 0;
+	LayerTimer.Tick();
 
 	// Lock CentreOffset to a step for precision
 	CentreOffset.X = CentreOffset.X - fmod(CentreOffset.X, 0.01);
@@ -59,8 +62,6 @@ double UNoiseLayer::GetHeightAt3DPoint(DVector Vertex)
 
 	// Get Noise for offset point
 	double NoiseValue = Noise.GetNoise(Vertex.x + CentreOffset.X, Vertex.y + CentreOffset.Y, Vertex.z + CentreOffset.Z);
-
-	//Sanitize
 
 	// Invert if set
 	IsInverted ? NoiseValue *= -1 : NoiseValue;
@@ -74,6 +75,7 @@ double UNoiseLayer::GetHeightAt3DPoint(DVector Vertex)
 
 	// Return the calculated value of 0 or higher after elevation reduction
 	Value = fmax(0.f, Value);
+	LayerTimer.Tock();
 
 	return Value;
 }

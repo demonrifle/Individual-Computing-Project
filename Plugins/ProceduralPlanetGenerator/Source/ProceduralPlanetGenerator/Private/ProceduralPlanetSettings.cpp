@@ -11,7 +11,7 @@ UProceduralPlanetSettings::UProceduralPlanetSettings()
 void UProceduralPlanetSettings::Initialize(bool IsRandom)
 {
 	MaterialSettings = NewObject<UProceduralPlanetMaterialSettings>(this);
-	
+	EnableRealtimeUpdate = true;
 	if (IsRandom)
 	{
 		MaterialSettings->Initialize();

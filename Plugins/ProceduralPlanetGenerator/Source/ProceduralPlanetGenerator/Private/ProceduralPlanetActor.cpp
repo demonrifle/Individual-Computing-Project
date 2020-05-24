@@ -35,9 +35,11 @@ void AProceduralPlanetActor::OnConstruction(const FTransform & Transform)
 	Super::OnConstruction(Transform);
 
 	if (PlanetSettings && PlanetProvider)
-
 	{
-		UpdateSphere();
+		if (PlanetSettings->EnableRealtimeUpdate)
+		{
+			UpdateSphere();
+		}
 	}
 	
 }

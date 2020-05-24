@@ -28,6 +28,9 @@ public:
 	// Planet density
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "32", ClampMax = "4096"))
 		int32 Resolution;
+	// Toggles realtime update of settings after any property changes
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "RealtimeUpdate"))
+		bool EnableRealtimeUpdate;
 
 	UtilityTimer PerLayerTimer;
 

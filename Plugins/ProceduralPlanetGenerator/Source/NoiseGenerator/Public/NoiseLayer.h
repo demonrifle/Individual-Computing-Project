@@ -83,6 +83,7 @@ protected:
 	// FastNoise generator
 		FastNoise Noise;
 	// Type of noise
+	UPROPERTY()
 		UNoiseType NoiseType;
 public:
 	// Toggles the visibiltiy of the layer 
@@ -288,7 +289,7 @@ public:
 	static UCellularNoise* GetRandomLayer(FRandomStream* Seed);
 };
 
-UCLASS()
+UCLASS(EditInlineNew)
 class UWhiteNoise : public UNoiseLayer
 {
 	GENERATED_BODY()

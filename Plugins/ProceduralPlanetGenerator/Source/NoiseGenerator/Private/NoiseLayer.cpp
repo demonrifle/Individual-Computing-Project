@@ -34,15 +34,20 @@ double UNoiseLayer::GetHeightAt3DPoint(float X, float Y, float Z)
 	// Get Noise for offset point
 	double NoiseValue = Noise.GetNoise(Vertex.x + CentreOffset.X, Vertex.y + CentreOffset.Y, Vertex.z + CentreOffset.Z);
 
+	// Invert if set
+	IsInverted ? NoiseValue *= -1 : NoiseValue;
+
 	// The returned value is normally between -1 and 1. Add 1 to make it 0-2.
 	// Divide by 2 to make it 0-1.
-	// Multiply it by Amplitude to get final result and reduce that by the elevation reduction 
-	double Value = ((1 + NoiseValue) / 2 * Amplitude) - ElevationReduction;
+	NoiseValue = (1 + NoiseValue) / 2;
 
-	// Return the calculated value ot 0 of lower than that after elevation reduction
+	// Multiply it by Amplitude to get final result and reduce that by the elevation reduction 
+	double Value = (NoiseValue * Amplitude) - ElevationReduction;
+
+	// Return the calculated value of 0 or higher after elevation reduction
 	Value = fmax(0.f, Value);
-	
 	LayerTimer.Tock();
+
 	return Value;
 }
 

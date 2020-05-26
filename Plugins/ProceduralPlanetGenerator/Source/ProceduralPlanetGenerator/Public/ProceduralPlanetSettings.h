@@ -26,7 +26,7 @@ public:
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "-10000", ClampMax = "10000"))
 		float Radius;
 	// Planet density
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "32", ClampMax = "4096"))
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "32", ClampMax = "2048"))
 		int32 Resolution;
 	// Toggles realtime update of settings after any property changes
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "RealtimeUpdate"))

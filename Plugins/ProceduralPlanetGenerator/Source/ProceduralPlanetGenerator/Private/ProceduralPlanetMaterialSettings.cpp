@@ -70,7 +70,7 @@ void UProceduralPlanetMaterialSettings::Update()
 
 void UProceduralPlanetMaterialSettings::Randomize(FRandomStream* Seed)
 {
-	bool ShouldBeFullyTextured = Seed->RandRange(0, 1);
+	bool ShouldBeFullyTextured = (bool) Seed->RandRange(0, 1);
 	if (ShouldBeFullyTextured)
 	{
 		Texture1Height = Seed->FRandRange(0.f, 0.2f);

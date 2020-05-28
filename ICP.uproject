@@ -1,3 +1,27 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:455a4773e98a812d64cbda074e28e4d40e4a607c88831998dacfd833e773569e
-size 551
+{
+	"FileVersion": 3,
+	"EngineAssociation": "4.24",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "ICP",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"RuntimeMeshComponent"
+			]
+		}
+	],
+  "Plugins": [
+    {
+      "Name": "RuntimeMeshComponent",
+      "Enabled": true,
+      "MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/ad0b45a6a31e462aba7cf7c790a9c125"
+    },
+    {
+      "Name": "ProceduralPlanetGenerator",
+      "Enabled": true
+    }
+  ]
+}
